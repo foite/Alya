@@ -1,7 +1,10 @@
 #include <iostream>
+#include "manager/manager.hpp"
 
 int main()
 {
-		std::cout << "Hello, World!" << "\n";
-		return 0;
+	Manager manager{};
+	manager.add_bot("", "", ELoginMethod::LEGACY);
+	std::cout << "Hello, World!" << "\n";
+	return 0;
 }
