@@ -7,7 +7,7 @@
 class Manager
 {
 public:
-	void add_bot(std::string username, std::string password, ELoginMethod method);
+	void add_bot(std::string username, std::string password, types::ELoginMethod method);
 	void get_bot(std::string username);
 	void remove_bot(std::string username);
 

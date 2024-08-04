@@ -1,8 +1,11 @@
 #pragma once
 
-enum ELoginMethod {
-	LEGACY,
-	GOOGLE,
-	APPLE,
-	UBISOFT
-};
+namespace types
+{
+	enum ELoginMethod {
+		LEGACY,
+		GOOGLE,
+		APPLE,
+		UBISOFT
+	};
+}
