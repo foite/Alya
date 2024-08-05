@@ -1,6 +1,6 @@
 #pragma once
 #include "bot/bot.hpp"
-#include "types/eloginmethod.hpp"
+#include "types/e_login_method.hpp"
 #include <memory>
 #include <string>
 #include <vector>

@@ -1,11 +1,13 @@
 #include "bot.hpp"
 #include <cpr/cpr.h>
+#include <cstring>
 #include <fstream>
+#include <magic_enum.hpp>
 #include <nlohmann/json.hpp>
 #include <regex>
-#include <spdlog/spdlog.h>
 
 #include "enet/enet.h"
+#include "packet_handler.hpp"
 #include "utils/proton.hpp"
 #include "utils/textparse.hpp"
 
@@ -85,6 +87,10 @@ void Bot::process_event() {
       break;
     case ENET_EVENT_TYPE_RECEIVE:
       spdlog::info("Received a packet");
+      if (event.packet->dataLength < 4) {
+        break;
+      }
+      Packet::handle(this, event.packet->data);
       break;
     case ENET_EVENT_TYPE_DISCONNECT:
       spdlog::info("Disconnected from server");
@@ -169,4 +175,15 @@ void Bot::get_oauth_links() {
       break;
     }
   }
+}
+
+void Bot::send_packet(types::EPacketType packet_type, std::string &message) {
+  ENetPacket *packet =
+      enet_packet_create(nullptr, sizeof(types::EPacketType) + message.length(),
+                         ENET_PACKET_FLAG_RELIABLE);
+  *(types::EPacketType *)packet->data = packet_type;
+  memcpy(packet->data + sizeof(types::EPacketType), message.c_str(),
+         message.length());
+
+  enet_peer_send(this->peer, 0, packet);
 }

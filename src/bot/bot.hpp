@@ -1,7 +1,9 @@
 #pragma once
 #include "bot/botinfo.hpp"
-#include "types/eloginmethod.hpp"
+#include "types/e_login_method.hpp"
+#include "types/e_packet_type.hpp"
 #include <enet/enet.h>
+#include <spdlog/spdlog.h>
 #include <string>
 
 class Bot {
@@ -13,7 +15,7 @@ public:
   void place();
   void warp();
   void talk();
-  void send_packet();
+  void send_packet(types::EPacketType packet_type, std::string &message);
 
 private:
   void login();

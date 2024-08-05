@@ -18,5 +18,5 @@ add_subdirectory(thirdparty/json)
 include_directories(src)
 include_directories(thirdparty/enet/include)
 
-add_executable(${PROJECT_NAME} src/main.cpp "src/manager/manager.hpp" "src/manager/manager.cpp" "src/bot/bot.cpp" "src/utils/textparse.cpp")
+add_executable(${PROJECT_NAME} src/main.cpp "src/manager/manager.cpp" "src/bot/bot.cpp" "src/utils/textparse.cpp")
 target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json OpenSSL::SSL cpr::cpr enet fmt::fmt magic_enum::magic_enum spdlog::spdlog)

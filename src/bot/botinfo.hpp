@@ -1,5 +1,5 @@
 #pragma once
-#include "types/eloginmethod.hpp"
+#include "types/e_login_method.hpp"
 #include "types/login_info.hpp"
 #include <cmath>
 #include <string>
