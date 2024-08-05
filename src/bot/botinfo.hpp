@@ -17,6 +17,7 @@ struct Info {
   types::LoginInfo login_info;
   int32_t ping;
   std::string status;
+  int32_t timeout;
 };
 
 struct State {

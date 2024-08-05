@@ -1,5 +1,7 @@
 #include "bot.hpp"
 #include <cpr/cpr.h>
+#include <fstream>
+#include <nlohmann/json.hpp>
 #include <regex>
 #include <spdlog/spdlog.h>
 
@@ -29,47 +31,73 @@ void Bot::login() {
 }
 
 void Bot::to_http() {
-  cpr::Response r = cpr::Post(
-      cpr::Url{"https://www.growtopia1.com/growtopia/server_data.php"},
-      cpr::UserAgent{"UbiServices_SDK_2022.Release.9_PC64_ansi_static"},
-      cpr::Body{""});
-  this->info.server_data = TextParse::parse_and_store_as_map(r.text);
+  this->info.status = "Fetching server data";
+  spdlog::info("Fetching server data.");
+  while (true) {
+    cpr::Response r = cpr::Post(
+        cpr::Url{"https://www.growtopia1.com/growtopia/server_data.php"},
+        cpr::UserAgent{"UbiServices_SDK_2022.Release.9_PC64_ansi_static"},
+        cpr::Body{""});
+
+    if (r.status_code != 200) {
+      this->info.status = "Failed to fetch server data. Retrying";
+      spdlog::error("Failed to fetch server data. Retrying");
+      this->sleep();
+    } else {
+      this->info.status = "Server data fetched";
+      spdlog::info("Server data fetched.");
+      this->info.server_data = TextParse::parse_and_store_as_map(r.text);
+      break;
+    }
+  }
+}
+
+void Bot::sleep() {
+  std::ifstream file("config.json");
+  nlohmann::json j = nlohmann::json::parse(file);
+  this->info.timeout = j["timeout"];
+  file.close();
+  while (this->info.timeout > 0) {
+    this->info.timeout--;
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+  }
 }
 
 void Bot::start_event_loop() {
+  this->info.status = "Starting event loop";
+  spdlog::info("Starting event loop");
   this->create_enet_host();
+  this->connect_to_server(this->info.server_data["server"],
+                          std::stoi(this->info.server_data["port"]));
+
   while (this->state.is_running) {
-    if (this->state.is_redirect) {
-      this->connect_to_server(this->server.ip, this->server.port);
-    } else {
-      if (this->state.is_ingame) {
-        // TODO: Get token again
-      }
-      this->to_http();
-      this->connect_to_server(this->info.server_data["server"],
-                              std::stoi(this->info.server_data["port"]));
-    }
     this->process_event();
   }
 }
 
 void Bot::process_event() {
-  while (true) {
-    ENetEvent event;
-    while (enet_host_service(this->host, &event, 1000)) {
-      switch (event.type) {
-      case ENET_EVENT_TYPE_CONNECT:
-        spdlog::info("Connected to server.");
-        break;
-      case ENET_EVENT_TYPE_RECEIVE:
-        spdlog::info("Received a packet.");
-        break;
-      case ENET_EVENT_TYPE_DISCONNECT:
-        spdlog::info("Disconnected from server.");
-        break;
-      case ENET_EVENT_TYPE_NONE:
-        break;
+  ENetEvent event;
+  while (enet_host_service(this->host, &event, 1000)) {
+    switch (event.type) {
+    case ENET_EVENT_TYPE_CONNECT:
+      this->info.status = "Connected";
+      spdlog::info("Connected to server");
+      break;
+    case ENET_EVENT_TYPE_RECEIVE:
+      spdlog::info("Received a packet");
+      break;
+    case ENET_EVENT_TYPE_DISCONNECT:
+      spdlog::info("Disconnected from server");
+      if (this->state.is_redirect) {
+        this->connect_to_server(this->server.ip, this->server.port);
+      } else {
+        this->to_http();
+        this->connect_to_server(this->info.server_data["server"],
+                                std::stoi(this->info.server_data["port"]));
       }
+      break;
+    case ENET_EVENT_TYPE_NONE:
+      break;
     }
   }
 }
@@ -93,6 +121,8 @@ void Bot::connect_to_server(std::string ip, int16_t port) {
 }
 
 void Bot::spoof() {
+  this->info.status = "Spoofing data";
+  spdlog::info("Spoofing data");
   this->info.login_info.klv = utils::generate_klv(
       this->info.login_info.protocol, this->info.login_info.game_version,
       this->info.login_info.rid);
@@ -104,26 +134,39 @@ void Bot::spoof() {
 }
 
 void Bot::get_oauth_links() {
-  cpr::Response r = cpr::Post(
-      cpr::Url{"https://login.growtopiagame.com/player/login/dashboard"},
-      cpr::UserAgent{this->user_agent},
-      cpr::Body{this->info.login_info.to_string()});
-  const std::regex pattern(
-      "https:\\/\\/login\\.growtopiagame\\.com\\/(apple|google|player\\/"
-      "growid)\\/(login|redirect)\\?token=[^\"]+");
+  this->info.status = "Getting OAuth links";
+  spdlog::info("Getting OAuth links");
+  while (true) {
+    cpr::Response r = cpr::Post(
+        cpr::Url{"https://login.growtopiagame.com/player/login/dashboard"},
+        cpr::UserAgent{this->user_agent},
+        cpr::Body{this->info.login_info.to_string()});
+    const std::regex pattern(
+        "https:\\/\\/login\\.growtopiagame\\.com\\/(apple|google|player\\/"
+        "growid)\\/(login|redirect)\\?token=[^\"]+");
 
-  auto matches_begin =
-      std::sregex_iterator(r.text.begin(), r.text.end(), pattern);
-  auto matches_end = std::sregex_iterator();
-
-  for (std::sregex_iterator i = matches_begin; i != matches_end; ++i) {
-    const std::smatch &match = *i;
-    if (match.str().find("apple") != std::string::npos) {
-      this->info.oauth_links["apple"] = match.str();
-    } else if (match.str().find("google") != std::string::npos) {
-      this->info.oauth_links["google"] = match.str();
+    if (r.status_code != 200) {
+      this->info.status = "Failed to fetch OAuth links. Retrying";
+      spdlog::error("Failed to fetch OAuth links. Retrying");
+      this->sleep();
     } else {
-      this->info.oauth_links["legacy"] = match.str();
+      this->info.status = "OAuth links fetched";
+      spdlog::info("OAuth links fetched");
+      auto matches_begin =
+          std::sregex_iterator(r.text.begin(), r.text.end(), pattern);
+      auto matches_end = std::sregex_iterator();
+
+      for (std::sregex_iterator i = matches_begin; i != matches_end; ++i) {
+        const std::smatch &match = *i;
+        if (match.str().find("apple") != std::string::npos) {
+          this->info.oauth_links["apple"] = match.str();
+        } else if (match.str().find("google") != std::string::npos) {
+          this->info.oauth_links["google"] = match.str();
+        } else {
+          this->info.oauth_links["legacy"] = match.str();
+        }
+      }
+      break;
     }
   }
 }

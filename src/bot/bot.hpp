@@ -25,6 +25,7 @@ private:
   void create_enet_host();
   void connect_to_server(std::string ip, int16_t port);
   void process_event();
+  void sleep();
 
 public:
   std::string user_agent =
