@@ -72,7 +72,7 @@ void Bot::start_event_loop() {
   this->connect_to_server(this->info.server_data["server"],
                           std::stoi(this->info.server_data["port"]));
 
-  while (this->state.is_running) {
+  while (this->state.is_running && !this->state.is_banned) {
     this->process_event();
   }
 }
@@ -176,6 +176,8 @@ void Bot::get_oauth_links() {
     }
   }
 }
+
+void Bot::disconnect() { enet_peer_disconnect(this->peer, 0); }
 
 void Bot::send_packet(types::EPacketType packet_type, std::string &message) {
   ENetPacket *packet =
