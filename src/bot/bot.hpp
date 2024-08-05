@@ -1,35 +1,39 @@
 #pragma once
-#include <map>
-#include <memory>
-#include <string>
-#include <vector>
-#include <enet/enet.h>
+#include "bot/botinfo.hpp"
 #include "types/eloginmethod.hpp"
-#include "types/login_info.hpp"
+#include <enet/enet.h>
+#include <string>
 
-class Bot
-{
+class Bot {
 public:
-	Bot(const std::string& username, const std::string& password, const types::ELoginMethod method);
-	void disconnect();
-	void punch();
-	void place();
-	void warp();
-	void talk();
-	void send_packet();
+  Bot(const std::string &username, const std::string &password,
+      const std::string &recovery_code, const types::ELoginMethod method);
+  void disconnect();
+  void punch();
+  void place();
+  void warp();
+  void talk();
+  void send_packet();
+
 private:
-	void login();
-	void to_http();
-	void get_oauth_links();
-	void parse_server_data();
+  void login();
+  void spoof();
+  void to_http();
+  void get_oauth_links();
+  void parse_server_data();
+  void start_event_loop();
+  void create_enet_host();
+  void connect_to_server(std::string ip, int16_t port);
+  void process_event();
+
 public:
-	std::string user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0";
-	std::string username;
-	std::string password;
-	types::LoginInfo login_info;
-	types::ELoginMethod method;
-	std::map<std::string, std::string> server_data;
-	std::vector<std::string> oauth_links;
-	std::unique_ptr<ENetPeer> peer;
-	std::unique_ptr<ENetHost> host;
+  std::string user_agent =
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, "
+      "like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0";
+  ENetHost *host;
+  ENetPeer *peer;
+  Info info;
+  State state;
+  Server server;
+  Position position;
 };
