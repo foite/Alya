@@ -2,12 +2,15 @@
 #include <cpr/cpr.h>
 #include <cstring>
 #include <fstream>
+#include <iostream>
 #include <magic_enum.hpp>
 #include <nlohmann/json.hpp>
 #include <regex>
 
+#include "bot/login/login.hpp"
 #include "enet/enet.h"
-#include "packet_handler.hpp"
+#include "packet/packet_handler.hpp"
+#include "spdlog/spdlog.h"
 #include "utils/proton.hpp"
 #include "utils/textparse.hpp"
 
@@ -29,6 +32,7 @@ void Bot::login() {
   this->to_http();
   this->spoof();
   this->get_oauth_links();
+  this->get_token();
   this->start_event_loop();
 }
 
@@ -94,12 +98,14 @@ void Bot::process_event() {
       break;
     case ENET_EVENT_TYPE_DISCONNECT:
       spdlog::info("Disconnected from server");
-      if (this->state.is_redirect) {
-        this->connect_to_server(this->server.ip, this->server.port);
-      } else {
-        this->to_http();
-        this->connect_to_server(this->info.server_data["server"],
-                                std::stoi(this->info.server_data["port"]));
+      if (this->state.is_running) {
+        if (this->state.is_redirect) {
+          this->connect_to_server(this->server.ip, this->server.port);
+        } else {
+          this->to_http();
+          this->connect_to_server(this->info.server_data["server"],
+                                  std::stoi(this->info.server_data["port"]));
+        }
       }
       break;
     case ENET_EVENT_TYPE_NONE:
@@ -175,6 +181,24 @@ void Bot::get_oauth_links() {
       break;
     }
   }
+}
+
+void Bot::get_token() {
+  this->info.status = "Getting token";
+  spdlog::info("Getting token");
+
+  switch (this->info.method) {
+  case types::ELoginMethod::LEGACY: {
+    this->info.token =
+        Login::get_legacy_token(this->info.oauth_links["legacy"],
+                                this->info.username, this->info.password);
+    break;
+  default:
+    break;
+  }
+  }
+
+  spdlog::info("Token: {}", this->info.token);
 }
 
 void Bot::disconnect() { enet_peer_disconnect(this->peer, 0); }

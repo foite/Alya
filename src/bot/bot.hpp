@@ -21,6 +21,7 @@ private:
   void login();
   void spoof();
   void to_http();
+  void get_token();
   void get_oauth_links();
   void parse_server_data();
   void start_event_loop();
