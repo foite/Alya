@@ -1,4 +1,10 @@
 #include "packet_handler.hpp"
+#include "bot/packet/variant_handler.hpp"
+#include "fmt/format.h"
+#include "types/e_packet_type.hpp"
+#include "types/e_tankpacket_type.hpp"
+#include "types/tank_packet.hpp"
+#include <magic_enum.hpp>
 
 void Packet::handle(Bot *bot, uint8_t *data) {
   types::EPacketType packet_type{*(uint32_t *)data};
@@ -48,6 +54,14 @@ void Packet::handle(Bot *bot, uint8_t *data) {
     }
 
     break;
+  }
+  case types::EPacketType::NetMessageGamePacket: {
+    types::TankPacket tank_packet;
+    memcpy(&tank_packet, data, sizeof(types::TankPacket));
+
+    if (tank_packet.type == types::ETankPacketType::NetGamePacketCallFunction) {
+      Variant::handle(bot, data + sizeof(types::TankPacket));
+    }
   }
   default:
     break;

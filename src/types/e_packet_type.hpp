@@ -1,4 +1,6 @@
+#pragma once
 #include <cstdint>
+
 namespace types {
 enum EPacketType : uint32_t {
   NetMessageUnknown,

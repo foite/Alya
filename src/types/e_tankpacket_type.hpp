@@ -1,3 +1,4 @@
+#pragma once
 #include <cstdint>
 namespace types {
 enum ETankPacketType : uint8_t {

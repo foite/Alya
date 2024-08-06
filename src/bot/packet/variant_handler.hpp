@@ -1,7 +1,7 @@
 #pragma once
 #include "bot/bot.hpp"
 
-class Packet {
+class Variant {
 public:
   static void handle(Bot *bot, uint8_t *data);
 };

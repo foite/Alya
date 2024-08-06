@@ -1,7 +1,5 @@
 #include "login.hpp"
 #include "cpr/cpr.h"
-#include "cpr/response.h"
-#include "nlohmann/json_fwd.hpp"
 #include <nlohmann/json.hpp>
 #include <regex>
 #include <string>

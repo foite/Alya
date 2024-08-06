@@ -1,3 +1,4 @@
+#pragma once
 #include "utils/random.hpp"
 #include <sstream>
 #include <string>
