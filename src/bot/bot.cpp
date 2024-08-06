@@ -93,6 +93,7 @@ void Bot::process_event() {
         break;
       }
       Packet::handle(this, event.packet->data);
+      enet_packet_destroy(event.packet);
       break;
     case ENET_EVENT_TYPE_DISCONNECT:
       spdlog::info("Disconnected from server");
