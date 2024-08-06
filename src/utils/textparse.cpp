@@ -2,7 +2,8 @@
 
 std::string delimiter = "|";
 
-std::vector<std::string> TextParse::parse_and_store_as_vec(std::string &input) {
+std::vector<std::string>
+utils::TextParse::parse_and_store_as_vec(std::string &input) {
   std::vector<std::string> result;
   size_t pos = 0;
 
@@ -18,7 +19,7 @@ std::vector<std::string> TextParse::parse_and_store_as_vec(std::string &input) {
 }
 
 std::unordered_map<std::string, std::string>
-TextParse::parse_and_store_as_map(std::string &input) {
+utils::TextParse::parse_and_store_as_map(std::string &input) {
 
   std::unordered_map<std::string, std::string> result;
   size_t pos = 0;

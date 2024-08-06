@@ -14,7 +14,7 @@ struct LoginInfo {
   std::string fz = "47142936";
   std::string f = "1";
   std::string player_age = "20";
-  std::string game_version = "4.62";
+  std::string game_version = "4.63";
   std::string lmode = "1";
   std::string cbits = "1040";
   std::string rid = utils::random_hex(32, true);
@@ -35,11 +35,11 @@ struct LoginInfo {
 
   std::string to_string() const {
     std::ostringstream oss;
-    oss << "uuid|" << uuid << "\n"
+    oss << "UUIDToken|" << uuid << "\n"
         << "protocol|" << protocol << "\n"
         << "fhash|" << fhash << "\n"
         << "mac|" << mac << "\n"
-        << "requested_name|" << requested_name << "\n"
+        << "requestedName|" << requested_name << "\n"
         << "hash2|" << hash2 << "\n"
         << "fz|" << fz << "\n"
         << "f|" << f << "\n"
@@ -48,7 +48,7 @@ struct LoginInfo {
         << "lmode|" << lmode << "\n"
         << "cbits|" << cbits << "\n"
         << "rid|" << rid << "\n"
-        << "gdpr|" << gdpr << "\n"
+        << "GDPR|" << gdpr << "\n"
         << "hash|" << hash << "\n"
         << "category|" << category << "\n"
         << "token|" << token << "\n"
@@ -56,8 +56,8 @@ struct LoginInfo {
         << "door_id|" << door_id << "\n"
         << "klv|" << klv << "\n"
         << "meta|" << meta << "\n"
-        << "platform_id|" << platform_id << "\n"
-        << "device_version|" << device_version << "\n"
+        << "platformID|" << platform_id << "\n"
+        << "deviceVersion|" << device_version << "\n"
         << "zf|" << zf << "\n"
         << "country|" << country << "\n"
         << "user|" << user << "\n"

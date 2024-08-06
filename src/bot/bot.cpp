@@ -51,7 +51,7 @@ void Bot::to_http() {
     } else {
       this->info.status = "Server data fetched";
       spdlog::info("Server data fetched.");
-      this->info.server_data = TextParse::parse_and_store_as_map(r.text);
+      this->info.server_data = utils::TextParse::parse_and_store_as_map(r.text);
       break;
     }
   }
@@ -99,6 +99,7 @@ void Bot::process_event() {
       spdlog::info("Disconnected from server");
       if (this->state.is_running) {
         if (this->state.is_redirect) {
+          spdlog::info("Redirecting to server");
           this->connect_to_server(this->server.ip, this->server.port);
         } else {
           this->to_http();
@@ -202,7 +203,7 @@ void Bot::get_token() {
 
 void Bot::disconnect() { enet_peer_disconnect(this->peer, 0); }
 
-void Bot::send_packet(types::EPacketType packet_type, std::string &message) {
+void Bot::send_packet(types::EPacketType packet_type, std::string message) {
   ENetPacket *packet =
       enet_packet_create(nullptr, sizeof(types::EPacketType) + message.length(),
                          ENET_PACKET_FLAG_RELIABLE);

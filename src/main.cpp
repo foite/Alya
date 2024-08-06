@@ -22,6 +22,6 @@ void init_config() {
 int main() {
   init_config();
   Manager manager{};
-  manager.add_bot("", "", "", ELoginMethod::LEGACY);
+  manager.add_bot("xnhjhv", "fmaabjm8.", "", ELoginMethod::LEGACY);
   return 0;
 }

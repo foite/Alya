@@ -2,6 +2,7 @@
 #include "bot/botinfo.hpp"
 #include "types/e_login_method.hpp"
 #include "types/e_packet_type.hpp"
+#include "types/tank_packet.hpp"
 #include <enet/enet.h>
 #include <spdlog/spdlog.h>
 #include <string>
@@ -15,7 +16,8 @@ public:
   void place();
   void warp();
   void talk();
-  void send_packet(types::EPacketType packet_type, std::string &message);
+  void send_packet(types::TankPacket packet);
+  void send_packet(types::EPacketType packet_type, std::string message);
 
 private:
   void login();

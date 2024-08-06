@@ -4,6 +4,7 @@
 #include "types/e_packet_type.hpp"
 #include "types/e_tankpacket_type.hpp"
 #include "types/tank_packet.hpp"
+#include <cstring>
 #include <magic_enum.hpp>
 
 void Packet::handle(Bot *bot, uint8_t *data) {
@@ -61,6 +62,20 @@ void Packet::handle(Bot *bot, uint8_t *data) {
 
     if (tank_packet.type == types::ETankPacketType::NetGamePacketCallFunction) {
       Variant::handle(bot, data + sizeof(types::TankPacket));
+    }
+    if (tank_packet.type == types::ETankPacketType::NetGamePacketPingRequest) {
+      // types::TankPacket pkt;
+      // memcpy(&pkt, data, sizeof(types::TankPacket));
+      // pkt.type = types::ETankPacketType::NetGamePacketPingReply;
+      // pkt.net_id = 0;
+      // pkt.unk2 = 0;
+      // pkt.vector_x = 64.0;
+      // pkt.vector_y = 64.0;
+      // pkt.vector_x2 = 1000.0;
+      // pkt.vector_y2 = 250.0;
+      // memcpy(&pkt + sizeof(types::TankPacket), data +
+      // sizeof(types::TankPacket),
+      //        pkt.extended_data_length);
     }
   }
   default:
