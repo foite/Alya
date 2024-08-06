@@ -35,6 +35,7 @@ void Packet::handle(Bot *bot, uint8_t *data) {
 
     if (message.find("logon_fail") != std::string::npos) {
       bot->info.status = "Failed to log in";
+      bot->state.is_redirect = false;
       spdlog::error("Failed to log in");
       bot->disconnect();
     }
@@ -64,18 +65,30 @@ void Packet::handle(Bot *bot, uint8_t *data) {
       Variant::handle(bot, data + sizeof(types::TankPacket));
     }
     if (tank_packet.type == types::ETankPacketType::NetGamePacketPingRequest) {
-      // types::TankPacket pkt;
-      // memcpy(&pkt, data, sizeof(types::TankPacket));
-      // pkt.type = types::ETankPacketType::NetGamePacketPingReply;
-      // pkt.net_id = 0;
-      // pkt.unk2 = 0;
-      // pkt.vector_x = 64.0;
-      // pkt.vector_y = 64.0;
-      // pkt.vector_x2 = 1000.0;
-      // pkt.vector_y2 = 250.0;
-      // memcpy(&pkt + sizeof(types::TankPacket), data +
-      // sizeof(types::TankPacket),
-      //        pkt.extended_data_length);
+      types::TankPacket pkt;
+      memcpy(&pkt, data, sizeof(types::TankPacket));
+      pkt.type = types::ETankPacketType::NetGamePacketPingReply;
+      pkt.net_id = 0;
+      pkt.unk2 = 0;
+      pkt.vector_x = 64.0;
+      pkt.vector_y = 64.0;
+      pkt.vector_x2 = 1000.0;
+      pkt.vector_y2 = 250.0;
+
+      ENetPacket *enet_packet = enet_packet_create(
+          nullptr,
+          sizeof(types::EPacketType) + sizeof(types::TankPacket) +
+              pkt.extended_data_length,
+          ENET_PACKET_FLAG_RELIABLE);
+      *(types::EPacketType *)enet_packet->data =
+          types::EPacketType::NetMessageGamePacket;
+      memcpy(enet_packet->data + sizeof(types::EPacketType), &pkt,
+             sizeof(types::TankPacket));
+      memcpy(enet_packet->data + sizeof(types::EPacketType) +
+                 sizeof(types::TankPacket),
+             data + sizeof(types::TankPacket), pkt.extended_data_length);
+
+      enet_peer_send(bot->peer, 0, enet_packet);
     }
   }
   default:

@@ -89,7 +89,6 @@ void Bot::process_event() {
       spdlog::info("Connected to server");
       break;
     case ENET_EVENT_TYPE_RECEIVE:
-      spdlog::info("Received a packet");
       if (event.packet->dataLength < 4) {
         break;
       }
