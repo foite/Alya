@@ -1,12 +1,14 @@
 #pragma once
+#include <algorithm>
+#include <cstdint>
 #include <cstring>
-#include <endian.h>
 #include <magic_enum.hpp>
 #include <string>
 #include <variant>
 #include <vector>
 
 namespace utils {
+
 enum class VariantType : uint8_t {
   Unknown = 0,
   Float = 1,
@@ -88,7 +90,7 @@ public:
       case VariantType::Float: {
         float value;
         std::memcpy(&value, &data[offset], sizeof(float));
-        value = le32toh(value);
+        value = from_little_endian(value);
         offset += sizeof(float);
         list.variants_.emplace_back(value);
         break;
@@ -96,7 +98,7 @@ public:
       case VariantType::String: {
         uint32_t len;
         std::memcpy(&len, &data[offset], sizeof(uint32_t));
-        len = le32toh(len);
+        len = from_little_endian(len);
         offset += sizeof(uint32_t);
         std::string value(reinterpret_cast<const char *>(&data[offset]), len);
         offset += len;
@@ -106,10 +108,10 @@ public:
       case VariantType::Vec2: {
         float x, y;
         std::memcpy(&x, &data[offset], sizeof(float));
-        x = le32toh(x);
+        x = from_little_endian(x);
         offset += sizeof(float);
         std::memcpy(&y, &data[offset], sizeof(float));
-        y = le32toh(y);
+        y = from_little_endian(y);
         offset += sizeof(float);
         list.variants_.emplace_back(Variant::Vec2{x, y});
         break;
@@ -117,13 +119,13 @@ public:
       case VariantType::Vec3: {
         float x, y, z;
         std::memcpy(&x, &data[offset], sizeof(float));
-        x = le32toh(x);
+        x = from_little_endian(x);
         offset += sizeof(float);
         std::memcpy(&y, &data[offset], sizeof(float));
-        y = le32toh(y);
+        y = from_little_endian(y);
         offset += sizeof(float);
         std::memcpy(&z, &data[offset], sizeof(float));
-        z = le32toh(z);
+        z = from_little_endian(z);
         offset += sizeof(float);
         list.variants_.emplace_back(Variant::Vec3{x, y, z});
         break;
@@ -131,7 +133,7 @@ public:
       case VariantType::Unsigned: {
         uint32_t value;
         std::memcpy(&value, &data[offset], sizeof(uint32_t));
-        value = le32toh(value);
+        value = from_little_endian(value);
         offset += sizeof(uint32_t);
         list.variants_.emplace_back(value);
         break;
@@ -139,7 +141,7 @@ public:
       case VariantType::Signed: {
         int32_t value;
         std::memcpy(&value, &data[offset], sizeof(int32_t));
-        value = le32toh(value);
+        value = from_little_endian(value);
         offset += sizeof(int32_t);
         list.variants_.emplace_back(value);
         break;
@@ -163,5 +165,26 @@ public:
 
 private:
   std::vector<Variant> variants_;
+
+  template <typename T> static T from_little_endian(T value) {
+    if constexpr (sizeof(T) == 4) {
+      uint32_t temp = static_cast<uint32_t>(value);
+      temp = (temp >> 24) | ((temp << 8) & 0x00FF0000) |
+             ((temp >> 8) & 0x0000FF00) | (temp << 24);
+      return static_cast<T>(temp);
+    } else if constexpr (sizeof(T) == 8) {
+      uint64_t temp = static_cast<uint64_t>(value);
+      temp = (temp >> 56) | ((temp << 40) & 0x00FF000000000000) |
+             ((temp << 24) & 0x0000FF0000000000) |
+             ((temp << 8) & 0x000000FF00000000) |
+             ((temp >> 8) & 0x00000000FF000000) |
+             ((temp >> 24) & 0x0000000000FF0000) |
+             ((temp >> 40) & 0x000000000000FF00) | (temp << 56);
+      return static_cast<T>(temp);
+    } else {
+      return value;
+    }
+  }
 };
+
 } // namespace utils
