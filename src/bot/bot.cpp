@@ -14,11 +14,13 @@
 #include "utils/textparse.hpp"
 
 Bot::Bot(const std::string &username, const std::string &password,
-         const std::string &recovery_code, const types::ELoginMethod method) {
+         const std::string &recovery_code, const types::ELoginMethod method,
+         ItemDatabase *item_db) {
   this->info.username = std::move(username);
   this->info.password = std::move(password);
   this->info.recovery_code = std::move(recovery_code);
   this->info.method = method;
+  this->item_db = item_db;
 
   this->login();
 }

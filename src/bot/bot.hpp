@@ -1,5 +1,6 @@
 #pragma once
 #include "bot/botinfo.hpp"
+#include "bot/item/item.hpp"
 #include "types/e_login_method.hpp"
 #include "types/e_packet_type.hpp"
 #include <enet/enet.h>
@@ -9,7 +10,8 @@
 class Bot {
 public:
   Bot(const std::string &username, const std::string &password,
-      const std::string &recovery_code, const types::ELoginMethod method);
+      const std::string &recovery_code, const types::ELoginMethod method,
+      ItemDatabase *item_db);
   void disconnect();
   void punch();
   void place();
@@ -36,6 +38,7 @@ public:
       "like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0";
   ENetHost *host;
   ENetPeer *peer;
+  ItemDatabase *item_db;
   Info info;
   State state;
   Server server;

@@ -7,6 +7,7 @@ set(BUILD_SHARED_LIBS OFF)
 set(JSON_BuildTests OFF CACHE INTERNAL "")
 
 find_package(OpenSSL REQUIRED)
+file(COPY ${CMAKE_SOURCE_DIR}/items.dat DESTINATION ${CMAKE_BINARY_DIR})
 
 add_subdirectory(thirdparty/cpr)
 add_subdirectory(thirdparty/enet)
@@ -18,5 +19,5 @@ add_subdirectory(thirdparty/json)
 include_directories(src)
 include_directories(thirdparty/enet/include)
 
-add_executable(${PROJECT_NAME} src/main.cpp "src/manager/manager.cpp" "src/bot/bot.cpp" "src/utils/textparse.cpp" "src/bot/packet/packet_handler.cpp" "src/bot/packet/variant_handler.cpp" "src/bot/login/login.cpp")
-target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json OpenSSL::SSL cpr::cpr enet fmt::fmt magic_enum::magic_enum spdlog::spdlog)
+add_executable(${PROJECT_NAME} src/main.cpp "src/manager/manager.cpp" "src/bot/bot.cpp" "src/bot/item/item.cpp" "src/utils/textparse.cpp" "src/bot/packet/packet_handler.cpp" "src/bot/packet/variant_handler.cpp" "src/bot/login/login.cpp")
+target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json enet OpenSSL::SSL cpr::cpr fmt::fmt magic_enum::magic_enum spdlog::spdlog)
