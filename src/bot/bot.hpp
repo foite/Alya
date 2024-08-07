@@ -1,6 +1,8 @@
 #pragma once
 #include "bot/botinfo.hpp"
-#include "bot/item/item.hpp"
+#include "bot/inventory/inventory.hpp"
+#include "bot/world/world.hpp"
+#include "item/item.hpp"
 #include "types/e_login_method.hpp"
 #include "types/e_packet_type.hpp"
 #include <enet/enet.h>
@@ -43,4 +45,6 @@ public:
   State state;
   Server server;
   Position position;
+  World world;
+  Inventory inventory;
 };

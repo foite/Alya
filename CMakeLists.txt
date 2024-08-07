@@ -19,5 +19,7 @@ add_subdirectory(thirdparty/json)
 include_directories(src)
 include_directories(thirdparty/enet/include)
 
-add_executable(${PROJECT_NAME} src/main.cpp "src/manager/manager.cpp" "src/bot/bot.cpp" "src/bot/item/item.cpp" "src/utils/textparse.cpp" "src/bot/packet/packet_handler.cpp" "src/bot/packet/variant_handler.cpp" "src/bot/login/login.cpp")
+file(GLOB_RECURSE SOURCES src/*.cpp)
+
+add_executable(${PROJECT_NAME} ${SOURCES})
 target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json enet OpenSSL::SSL cpr::cpr fmt::fmt magic_enum::magic_enum spdlog::spdlog)

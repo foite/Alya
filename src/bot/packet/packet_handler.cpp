@@ -64,6 +64,13 @@ void Packet::handle(Bot *bot, uint8_t *data) {
     if (tank_packet.type == types::ETankPacketType::NetGamePacketCallFunction) {
       Variant::handle(bot, data + sizeof(types::TankPacket));
     }
+    if (tank_packet.type == types::ETankPacketType::NetGamePacketSendMapData) {
+      bot->world.parse(data + sizeof(types::TankPacket));
+    }
+    if (tank_packet.type ==
+        types::ETankPacketType::NetGamePacketSendInventoryState) {
+      bot->inventory.parse(data + sizeof(types::TankPacket));
+    }
     if (tank_packet.type == types::ETankPacketType::NetGamePacketPingRequest) {
       types::TankPacket pkt;
       memcpy(&pkt, data, sizeof(types::TankPacket));
