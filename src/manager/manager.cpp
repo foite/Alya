@@ -1,5 +1,7 @@
 #include "manager.hpp"
 #include "bot/item/item.hpp"
+#include "nlohmann/json.hpp"
+#include <fstream>
 
 Manager::Manager() {
   this->item_db = parse_from_file("items.dat");
@@ -8,6 +10,13 @@ Manager::Manager() {
     return;
   }
   spdlog::info("Parsed items.dat");
+
+  std::ifstream file("config.json");
+  nlohmann::json j = nlohmann::json::parse(file);
+  for (auto &bot : j["bots"]) {
+    this->add_bot(bot[0], bot[1], bot[2], bot[3]);
+  }
+  file.close();
 }
 
 Manager::~Manager() {
@@ -21,7 +30,18 @@ Manager::~Manager() {
 }
 
 void Manager::add_bot(std::string username, std::string password,
-                      std::string recovery_code, types::ELoginMethod method) {
+                      std::string recovery_code, types::ELoginMethod method,
+                      bool save) {
+  if (save) {
+    std::ifstream file("config.json");
+    nlohmann::json j = nlohmann::json::parse(file);
+    file.close();
+    j["bots"].push_back({username, password, recovery_code, method});
+    std::ofstream out("config.json");
+    out << j.dump(2);
+    out.close();
+  }
+
   auto bot =
       std::make_shared<Bot>(std::move(username), std::move(password),
                             std::move(recovery_code), method, this->item_db);

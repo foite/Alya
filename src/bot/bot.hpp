@@ -22,6 +22,7 @@ public:
   void talk(std::string message);
   void send_packet(types::EPacketType packet_type, std::string message);
   void login();
+  void walk(int32_t x, int32_t y, bool ap = false);
 
 private:
   void spoof();

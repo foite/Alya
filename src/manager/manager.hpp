@@ -11,7 +11,8 @@ public:
   Manager();
   ~Manager();
   void add_bot(std::string username, std::string password,
-               std::string recovery_code, types::ELoginMethod method);
+               std::string recovery_code, types::ELoginMethod method,
+               bool save = false);
   std::shared_ptr<Bot> get_bot(std::string username);
   void remove_bot(std::string username);
 

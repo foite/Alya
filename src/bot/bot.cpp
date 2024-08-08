@@ -93,6 +93,7 @@ void Bot::process_event() {
       spdlog::info("Connected to server");
       break;
     case ENET_EVENT_TYPE_RECEIVE:
+      this->info.ping = event.peer->lastRoundTripTime;
       if (event.packet->dataLength < 4) {
         break;
       }
@@ -100,6 +101,7 @@ void Bot::process_event() {
       enet_packet_destroy(event.packet);
       break;
     case ENET_EVENT_TYPE_DISCONNECT:
+      this->info.ping = 0;
       spdlog::info("Disconnected from server");
       if (this->state.is_running) {
         if (this->state.is_redirect) {
@@ -239,6 +241,7 @@ void Bot::punch(int32_t offset_x, int32_t offset_y) {
 }
 
 void Bot::warp(std::string world_name) {
+  spdlog::info("Warping to world: {}", world_name);
   this->send_packet(
       types::EPacketType::NetMessageGameMessage,
       fmt::format("action|join_request\nname|{}\ninvitedWorld|0\n",
@@ -248,6 +251,40 @@ void Bot::warp(std::string world_name) {
 void Bot::talk(std::string message) {
   this->send_packet(types::EPacketType::NetMessageGameMessage,
                     fmt::format("action|input\n|text|{}\n", message));
+}
+// TODO : Fix ban
+void Bot::walk(int32_t x, int32_t y, bool ap) {
+  if (ap) {
+    this->position.x = x * 32;
+    this->position.y = y * 32;
+  } else {
+    this->position.x += x * 32;
+    this->position.y += y * 32;
+  }
+
+  types::TankPacket pkt;
+  uint32_t flags = 0;
+  flags |= 1 << 1;
+  flags |= 1 << 5;
+
+  pkt.type = types::ETankPacketType::NetGamePacketState;
+  pkt.vector_x = this->position.x;
+  pkt.vector_y = this->position.y;
+  pkt.flags = flags;
+  pkt.int_x = -1;
+  pkt.int_y = -1;
+
+  ENetPacket *enet_packet = enet_packet_create(nullptr,
+                                               sizeof(types::EPacketType) +
+                                                   sizeof(types::TankPacket) +
+                                                   pkt.extended_data_length,
+                                               ENET_PACKET_FLAG_RELIABLE);
+  *(types::EPacketType *)enet_packet->data =
+      types::EPacketType::NetMessageGamePacket;
+  memcpy(enet_packet->data + sizeof(types::EPacketType), &pkt,
+         sizeof(types::TankPacket));
+
+  enet_peer_send(this->peer, 0, enet_packet);
 }
 
 void Bot::send_packet(types::EPacketType packet_type, std::string message) {

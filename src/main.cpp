@@ -1,3 +1,4 @@
+#include "gui/gui.hpp"
 #include "manager/manager.hpp"
 #include <GLFW/glfw3.h>
 #include <backends/imgui_impl_glfw.h>
@@ -34,7 +35,6 @@ int main() {
 
   init_config();
   Manager manager{};
-  manager.add_bot("", ".", "", ELoginMethod::LEGACY);
 
 #if defined(IMGUI_IMPL_OPENGL_ES2)
   const char *glsl_version = "#version 100";
@@ -58,6 +58,7 @@ int main() {
   GLFWwindow *window = glfwCreateWindow(800, 400, "Alya", nullptr, nullptr);
   if (window == nullptr)
     return 1;
+  glfwSetWindowAttrib(window, GLFW_RESIZABLE, GLFW_FALSE);
   glfwMakeContextCurrent(window);
   glfwSwapInterval(1);
 
@@ -67,16 +68,23 @@ int main() {
   (void)io;
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
-  ImGui::StyleColorsDark();
+  GUI::set_theme();
+
   ImGui_ImplGlfw_InitForOpenGL(window, true);
   ImGui_ImplOpenGL3_Init(glsl_version);
 
-  bool show_demo_window = true;
-  bool show_another_window = false;
   ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
+  std::string selected_bot;
 
   while (!glfwWindowShouldClose(window)) {
     glfwPollEvents();
+    int display_w, display_h;
+    glfwGetFramebufferSize(window, &display_w, &display_h);
+
+    ImGuiIO &io = ImGui::GetIO();
+    io.DisplaySize = ImVec2((float)display_w, (float)display_h);
+
     if (glfwGetWindowAttrib(window, GLFW_ICONIFIED) != 0) {
       ImGui_ImplGlfw_Sleep(10);
       continue;
@@ -86,42 +94,128 @@ int main() {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    if (show_demo_window)
-      ImGui::ShowDemoWindow(&show_demo_window);
-    {
-      static float f = 0.0f;
-      static int counter = 0;
+    static float f = 0.0f;
+    static int counter = 0;
 
-      ImGui::Begin("Hello, world!");
-      ImGui::Text("This is some useful text.");
-      ImGui::Checkbox("Demo Window", &show_demo_window);
-      ImGui::Checkbox("Another Window", &show_another_window);
+    ImGui::SetNextWindowPos(ImVec2(0, 0));
+    ImGui::SetNextWindowSize(io.DisplaySize);
 
-      ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
-      ImGui::ColorEdit3("clear color", (float *)&clear_color);
+    ImGui::Begin("Alya", nullptr,
+                 ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+                     ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar |
+                     ImGuiWindowFlags_NoScrollWithMouse);
+    ImGui::Text("Alya");
+    ImGui::SameLine();
+    if (ImGui::Button("Add bot"))
+      ImGui::OpenPopup("Add bot");
 
-      if (ImGui::Button("Button"))
-        counter++;
+    if (ImGui::BeginPopupModal("Add bot", NULL,
+                               ImGuiWindowFlags_AlwaysAutoResize)) {
+      static char username[64];
+      static char password[64];
+      static char recovery_code[64];
+      static int method = 0;
+
+      ImGui::InputText("Username", username, IM_ARRAYSIZE(username));
+      ImGui::InputText("Password", password, IM_ARRAYSIZE(password));
+      ImGui::InputText("Recovery code", recovery_code,
+                       IM_ARRAYSIZE(recovery_code));
+      ImGui::Combo("Method", &method, "Legacy\0Google\0Apple\0Ubisoft\0");
+
+      if (ImGui::Button("Add")) {
+        manager.add_bot(username, password, recovery_code, ELoginMethod(method),
+                        true);
+        ImGui::CloseCurrentPopup();
+      }
       ImGui::SameLine();
-      ImGui::Text("counter = %d", counter);
-
-      ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
-                  1000.0f / io.Framerate, io.Framerate);
-      ImGui::End();
+      if (ImGui::Button("Cancel")) {
+        ImGui::CloseCurrentPopup();
+      }
+      ImGui::EndPopup();
     }
 
-    if (show_another_window) {
-      ImGui::Begin("Another Window", &show_another_window);
-      ImGui::Text("Hello from another window!");
-      if (ImGui::Button("Close Me"))
-        show_another_window = false;
-      ImGui::End();
+    ImGui::Separator();
+    ImGui::Columns(2, "bots", false);
+    ImGui::SetColumnWidth(0, 150);
+    ImGui::BeginChild("scrolling", ImVec2(0, 0), true);
+    for (auto &[username, bot_thread_tuple] : manager.bots) {
+      auto &[bot, thread] = bot_thread_tuple;
+      if (ImGui::Selectable(username.c_str())) {
+        selected_bot = username;
+      }
     }
+    ImGui::EndChild();
+    ImGui::NextColumn();
+    ImGui::BeginChild("info");
+    if (!selected_bot.empty()) {
+      auto bot = manager.get_bot(selected_bot);
+      if (bot != nullptr) {
+        ImGui::Text("Username: %s", bot->info.username.c_str());
+        ImGui::Text("Status: %s", bot->info.status.c_str());
+        ImGui::SameLine();
+        ImGui::Text("Timeout: %d", bot->info.timeout);
+        ImGui::Text("Token: %s", bot->info.token.c_str());
+        ImGui::Text("World: %s", bot->world.name.c_str());
+        ImGui::Text("Position: %f, %f", bot->position.x / 32,
+                    bot->position.y / 32);
+        ImGui::Text("Ping: %d", bot->info.ping);
+
+        static char world_name[64];
+        ImGui::InputText("World name", world_name, IM_ARRAYSIZE(world_name));
+        if (ImGui::Button("Warp")) {
+          bot->warp(world_name);
+        }
+      }
+      ImGui::Columns(3, NULL, false);
+      ImGui::SetColumnWidth(0, 60);
+      ImGui::SetColumnWidth(1, 60);
+      ImGui::SetColumnWidth(2, 60);
+
+      ImGui::NextColumn();
+      if (ImGui::Button("Up", ImVec2(50, 50))) {
+        auto bot = manager.get_bot(selected_bot);
+        if (bot != nullptr) {
+          bot->walk(0, -1);
+        }
+      }
+      ImGui::NextColumn();
+      ImGui::NextColumn();
+
+      if (ImGui::Button("Left", ImVec2(50, 50))) {
+        auto bot = manager.get_bot(selected_bot);
+        if (bot != nullptr) {
+          bot->walk(-1, 0);
+        }
+      }
+      ImGui::NextColumn();
+      ImGui::NextColumn();
+      if (ImGui::Button("Right", ImVec2(50, 50))) {
+        auto bot = manager.get_bot(selected_bot);
+        if (bot != nullptr) {
+          bot->walk(1, 0);
+        }
+      }
+      ImGui::NextColumn();
+
+      ImGui::NextColumn();
+      if (ImGui::Button("Down", ImVec2(50, 50))) {
+        auto bot = manager.get_bot(selected_bot);
+        if (bot != nullptr) {
+          bot->walk(1, 0);
+        }
+      }
+      ImGui::NextColumn();
+      ImGui::NextColumn();
+
+      ImGui::Columns(1);
+    }
+
+    ImGui::EndChild();
+    ImGui::Columns(1);
+    ImGui::End();
 
     // Rendering
     ImGui::Render();
-    int display_w, display_h;
-    glfwGetFramebufferSize(window, &display_w, &display_h);
     glViewport(0, 0, display_w, display_h);
     glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w,
                  clear_color.z * clear_color.w, clear_color.w);
