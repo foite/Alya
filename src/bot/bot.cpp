@@ -28,6 +28,8 @@ Bot::Bot(const std::string &username, const std::string &password,
 void Bot::login() {
   if (enet_initialize() != 0) {
     spdlog::error("An error occurred while initializing ENet.");
+  } else {
+    spdlog::info("ENet initialized.");
   }
   this->state.is_running = true;
   this->to_http();

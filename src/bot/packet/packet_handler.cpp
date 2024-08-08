@@ -72,6 +72,7 @@ void Packet::handle(Bot *bot, uint8_t *data) {
       bot->inventory.parse(data + sizeof(types::TankPacket));
     }
     if (tank_packet.type == types::ETankPacketType::NetGamePacketPingRequest) {
+      spdlog::info("Received ping request");
       types::TankPacket pkt;
       memcpy(&pkt, data, sizeof(types::TankPacket));
       pkt.type = types::ETankPacketType::NetGamePacketPingReply;
