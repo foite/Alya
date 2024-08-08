@@ -201,7 +201,7 @@ int main() {
       if (ImGui::Button("Down", ImVec2(50, 50))) {
         auto bot = manager.get_bot(selected_bot);
         if (bot != nullptr) {
-          bot->walk(1, 0);
+          bot->walk(0, 1);
         }
       }
       ImGui::NextColumn();

@@ -10,7 +10,7 @@ struct TankPacket {
   uint8_t unk3;
   uint32_t net_id;
   uint32_t unk4;
-  uint32_t flags;
+  uint32_t flags = 0;
   uint32_t unk6;
   uint32_t value;
   float vector_x;

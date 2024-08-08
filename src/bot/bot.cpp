@@ -252,7 +252,7 @@ void Bot::talk(std::string message) {
   this->send_packet(types::EPacketType::NetMessageGameMessage,
                     fmt::format("action|input\n|text|{}\n", message));
 }
-// TODO : Fix ban
+
 void Bot::walk(int32_t x, int32_t y, bool ap) {
   if (ap) {
     this->position.x = x * 32;
@@ -263,28 +263,27 @@ void Bot::walk(int32_t x, int32_t y, bool ap) {
   }
 
   types::TankPacket pkt;
-  uint32_t flags = 0;
-  flags |= 1 << 1;
-  flags |= 1 << 5;
-
   pkt.type = types::ETankPacketType::NetGamePacketState;
   pkt.vector_x = this->position.x;
   pkt.vector_y = this->position.y;
-  pkt.flags = flags;
   pkt.int_x = -1;
   pkt.int_y = -1;
+  pkt.flags |= 1 << 1;
+  pkt.flags |= 1 << 5;
 
-  ENetPacket *enet_packet = enet_packet_create(nullptr,
-                                               sizeof(types::EPacketType) +
-                                                   sizeof(types::TankPacket) +
-                                                   pkt.extended_data_length,
-                                               ENET_PACKET_FLAG_RELIABLE);
-  *(types::EPacketType *)enet_packet->data =
-      types::EPacketType::NetMessageGamePacket;
-  memcpy(enet_packet->data + sizeof(types::EPacketType), &pkt,
-         sizeof(types::TankPacket));
+  if (this->state.is_running && this->world.name != "EXIT") {
+    ENetPacket *enet_packet = enet_packet_create(nullptr,
+                                                 sizeof(types::EPacketType) +
+                                                     sizeof(types::TankPacket) +
+                                                     pkt.extended_data_length,
+                                                 ENET_PACKET_FLAG_RELIABLE);
+    *(types::EPacketType *)enet_packet->data =
+        types::EPacketType::NetMessageGamePacket;
+    memcpy(enet_packet->data + sizeof(types::EPacketType), &pkt,
+           sizeof(types::TankPacket));
 
-  enet_peer_send(this->peer, 0, enet_packet);
+    enet_peer_send(this->peer, 0, enet_packet);
+  }
 }
 
 void Bot::send_packet(types::EPacketType packet_type, std::string message) {
