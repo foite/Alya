@@ -48,6 +48,14 @@ void Packet::handle(Bot *bot, uint8_t *data) {
       bot->disconnect();
     }
 
+    if (message.find("temporarily suspended") != std::string::npos) {
+      bot->info.status = "Temporarily Suspended";
+      bot->state.is_running = false;
+      bot->state.is_banned = true;
+      spdlog::error("Temporarily Suspended");
+      bot->disconnect();
+    }
+
     if (message.find("Advanced Account Protection") != std::string::npos) {
       bot->info.status = "AAP Enabled";
       bot->state.is_running = false;

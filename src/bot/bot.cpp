@@ -156,10 +156,12 @@ void Bot::get_oauth_links() {
   this->info.status = "Getting OAuth links";
   spdlog::info("Getting OAuth links");
   while (true) {
+    std::string encoded_body = cpr::util::urlEncode(this->info.login_info.to_string());
     cpr::Response r = cpr::Post(
-        cpr::Url{"https://login.growtopiagame.com/player/login/dashboard"},
+        cpr::Url{"https://login.growtopiagame.com/player/login/dashboard?valKey=40db4045f2d8c572efe8c4a060605726"},
         cpr::UserAgent{this->user_agent},
-        cpr::Body{this->info.login_info.to_string()});
+        cpr::Body{encoded_body},
+        cpr::Header{{"Content-Type", "application/x-www-form-urlencoded"}});
     const std::regex pattern(
         "https:\\/\\/login\\.growtopiagame\\.com\\/(apple|google|player\\/"
         "growid)\\/(login|redirect)\\?token=[^\"]+");
@@ -168,6 +170,7 @@ void Bot::get_oauth_links() {
       this->info.status = "Failed to fetch OAuth links. Retrying";
       spdlog::error("Failed to fetch OAuth links. Retrying");
       this->sleep();
+      continue;
     } else {
       if (r.text.find("Oops, too many people logging at once.") !=
           std::string::npos) {
@@ -260,6 +263,7 @@ void Bot::talk(std::string message) {
                     fmt::format("action|input\n|text|{}\n", message));
 }
 
+// TODO: Fix Ban
 void Bot::walk(int32_t x, int32_t y, bool ap) {
   if (ap) {
     this->position.x = x * 32;
@@ -275,8 +279,10 @@ void Bot::walk(int32_t x, int32_t y, bool ap) {
   pkt.vector_y = this->position.y;
   pkt.int_x = -1;
   pkt.int_y = -1;
-  pkt.flags |= 1 << 1;
-  pkt.flags |= 1 << 5;
+  // I'm not sure why this resulted into a ban, let me know if you had any idea
+  // pkt.flags |= 1 << 1;
+  // pkt.flags |= 1 << 5;
+  pkt.flags = 0;
 
   if (this->state.is_running && this->world.name != "EXIT") {
     ENetPacket *enet_packet = enet_packet_create(nullptr,
