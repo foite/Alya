@@ -1,5 +1,7 @@
 #include "login.hpp"
 #include "cpr/cpr.h"
+#include "spdlog/spdlog.h"
+#include <iostream>
 #include <nlohmann/json.hpp>
 #include <regex>
 #include <string>
@@ -17,6 +19,7 @@ std::string Login::get_legacy_token(std::string &url, std::string &username,
     cpr::Response r = session.Get();
 
     if (r.status_code != 200) {
+      spdlog::error("Failed to get token, retrying...");
       continue;
     }
 
@@ -29,6 +32,7 @@ std::string Login::get_legacy_token(std::string &url, std::string &username,
     r = session.Post();
 
     if (r.status_code != 200) {
+      spdlog::error("Failed to validate token, retrying...");
       continue;
     }
 

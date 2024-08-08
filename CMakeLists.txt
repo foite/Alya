@@ -4,7 +4,6 @@ project(Alya)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(BUILD_SHARED_LIBS OFF)
-set(GLFW_LIBRARY_TYPE SHARED)
 set(JSON_BuildTests OFF CACHE INTERNAL "")
 
 find_package(OpenSSL REQUIRED)
@@ -20,6 +19,7 @@ add_subdirectory(thirdparty/glfw)
 
 include_directories(src)
 include_directories(thirdparty/imgui)
+include_directories(thirdparty/enet/include)
 
 file(GLOB_RECURSE SOURCES src/*.cpp)
 file(GLOB IMGUI_SOURCES 
@@ -34,4 +34,4 @@ file(GLOB ENET_SOURCES
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES} ${IMGUI_SOURCES} ${ENET_SOURCES})
-target_link_libraries(${PROJECT_NAME} nlohmann_json::nlohmann_json OpenGL::GL glfw OpenSSL::SSL cpr::cpr fmt::fmt magic_enum::magic_enum spdlog::spdlog)
+target_link_libraries(${PROJECT_NAME} nlohmann_json::nlohmann_json winmm OpenGL::GL glfw OpenSSL::SSL cpr::cpr fmt::fmt magic_enum::magic_enum spdlog::spdlog)

@@ -2,6 +2,7 @@
 #include <cpr/cpr.h>
 #include <cstring>
 #include <fstream>
+#include <iostream>
 #include <magic_enum.hpp>
 #include <nlohmann/json.hpp>
 #include <regex>
@@ -168,12 +169,18 @@ void Bot::get_oauth_links() {
       spdlog::error("Failed to fetch OAuth links. Retrying");
       this->sleep();
     } else {
+      if (r.text.find("Oops, too many people logging at once.") !=
+          std::string::npos) {
+        this->info.status = "Too many people logging at once. Retrying";
+        spdlog::error("Too many people logging at once. Retrying");
+        this->sleep();
+        continue;
+      }
       this->info.status = "OAuth links fetched";
       spdlog::info("OAuth links fetched");
       auto matches_begin =
           std::sregex_iterator(r.text.begin(), r.text.end(), pattern);
       auto matches_end = std::sregex_iterator();
-
       for (std::sregex_iterator i = matches_begin; i != matches_end; ++i) {
         const std::smatch &match = *i;
         if (match.str().find("apple") != std::string::npos) {
