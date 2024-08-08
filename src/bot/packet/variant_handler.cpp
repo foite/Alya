@@ -7,11 +7,11 @@
 #include <unordered_map>
 #include <vector>
 
-void onSendToServer(Bot *bot, const utils::VariantList &variant) {
-  int32_t port = variant.get(1)->as_int32();
-  int32_t token = variant.get(2)->as_int32();
-  int32_t user_id = variant.get(3)->as_int32();
-  std::string server_data = variant.get(4)->as_string();
+void onSendToServer(Bot *bot, utils::variantlist_t variant) {
+  int32_t port = variant[1].get_int32();
+  int32_t token = variant[2].get_int32();
+  int32_t user_id = variant[3].get_int32();
+  std::string server_data = variant[4].get_string();
   std::vector<std::string> parsed_server_data =
       utils::TextParse::parse_and_store_as_vec(server_data);
 
@@ -25,75 +25,67 @@ void onSendToServer(Bot *bot, const utils::VariantList &variant) {
 
   bot->disconnect();
 }
-
-void onSuperMainStartAcceptLogonHrdxs47254722215a(Bot *bot,
-                                                  const utils::VariantList &) {
+void onSuperMainStartAcceptLogonHrdxs47254722215a(
+    Bot *bot, utils::variantlist_t variant) {
   bot->send_packet(types::EPacketType::NetMessageGenericText,
                    "action|enter_game\n");
   bot->state.is_redirect = false;
 }
-
-void onCountryState(Bot *bot, const utils::VariantList &) {
+void onCountryState(Bot *bot, utils::variantlist_t variant) {
   bot->send_packet(types::EPacketType::NetMessageGenericText,
                    "action|getDRAnimations\n");
   bot->send_packet(types::EPacketType::NetMessageGenericText,
                    "action|getDRAnimations\n");
 }
-
-void onDialogRequest(Bot *bot, const utils::VariantList &variant) {
-  std::string message = variant.get(1)->as_string();
+void onDialogRequest(Bot *bot, utils::variantlist_t variant) {
+  std::string message = variant[1].get_string();
   if (message.find("Gazette") != std::string::npos) {
     bot->send_packet(
         types::EPacketType::NetMessageGenericText,
         "action|dialog_return\ndialog_name|gazette\nbuttonClicked|banner\n");
   }
 }
-
-void onSetBux(Bot *bot, const utils::VariantList &variant) {
-  int32_t gems = variant.get(1)->as_int32();
+void onSetBux(Bot *bot, utils::variantlist_t variant) {
+  int32_t gems = variant[1].get_int32();
   bot->state.gems = gems;
 }
-
-void onConsoleMessage(Bot *bot, const utils::VariantList &variant) {
-  std::string message = variant.get(1)->as_string();
+void onConsoleMessage(Bot *bot, utils::variantlist_t variant) {
+  std::string message = variant[1].get_string();
   spdlog::info("Received console message: {}", message);
 }
-
-void onSetPos(Bot *bot, const utils::VariantList &variant) {
-  utils::Variant::Vec2 pos = variant.get(1)->as_vec2();
-  bot->position.x = pos.first;
-  bot->position.y = pos.second;
+void onSetPos(Bot *bot, utils::variantlist_t variant) {
+  utils::vector2_t pos = variant[1].get_vector2();
+  bot->position.x = pos.m_x;
+  bot->position.y = pos.m_y;
 }
-
-void onFtueButtonDataSet(Bot *bot, const utils::VariantList &variant) {
-  int32_t unknown = variant.get(1)->as_int32();
-  int32_t current_progress = variant.get(2)->as_int32();
-  int32_t total_progress = variant.get(3)->as_int32();
-  std::string info = variant.get(4)->as_string();
+void onFtueButtonDataSet(Bot *bot, utils::variantlist_t variant) {
+  int32_t unknown = variant[1].get_int32();
+  int32_t current_progress = variant[2].get_int32();
+  int32_t total_progress = variant[3].get_int32();
+  std::string info = variant[4].get_string();
   spdlog::info("FTUE Button Data Set: {} {} {} {}", unknown, current_progress,
                total_progress, info);
 }
-
-void onSpawn(Bot *bot, const utils::VariantList &variant) {
-  std::string message = variant.get(1)->as_string();
+void onSpawn(Bot *bot, utils::variantlist_t variant) {
+  std::string message = variant[1].get_string();
   std::unordered_map<std::string, std::string> data =
       utils::TextParse::parse_and_store_as_map(message);
 
   bot->state.is_ingame = true;
   bot->state.net_id = std::stoi(data["netID"]);
 }
-
-void setHasGrowID(Bot *bot, const utils::VariantList &variant) {
-  bot->info.display_name = variant.get(2)->as_string();
+void setHasGrowID(Bot *bot, utils::variantlist_t variant) {
+  bot->info.display_name = variant[2].get_string();
 }
 
 void Variant::handle(Bot *bot, uint8_t *data) {
-  const utils::VariantList variant = utils::VariantList::deserialize(data);
-  const std::string function_call = variant.get(0)->as_string();
+  utils::variantlist_t variant{};
+  variant.serialize_from_mem(data);
+  const std::string function_call = variant[0].get_string();
   spdlog::info("Received function call: {}", function_call);
 
   std::unordered_map<std::string,
-                     std::function<void(Bot *, utils::VariantList)>>
+                     std::function<void(Bot *, utils::variantlist_t)>>
       handlers = {{std::string("OnSendToServer"), onSendToServer},
                   {std::string("OnSuperMainStartAcceptLogonHrdxs47254722215a"),
                    onSuperMainStartAcceptLogonHrdxs47254722215a},
