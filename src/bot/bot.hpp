@@ -5,6 +5,7 @@
 #include "item/item.hpp"
 #include "types/e_login_method.hpp"
 #include "types/e_packet_type.hpp"
+#include <cstdint>
 #include <enet/enet.h>
 #include <spdlog/spdlog.h>
 #include <string>
@@ -15,14 +16,14 @@ public:
       const std::string &recovery_code, const types::ELoginMethod method,
       ItemDatabase *item_db);
   void disconnect();
-  void punch();
-  void place();
-  void warp();
-  void talk();
+  void punch(int32_t offset_x, int32_t offset_y);
+  void place(int32_t offset_x, int32_t offset_y, uint32_t block_id);
+  void warp(std::string world_name);
+  void talk(std::string message);
   void send_packet(types::EPacketType packet_type, std::string message);
+  void login();
 
 private:
-  void login();
   void spoof();
   void to_http();
   void get_token();

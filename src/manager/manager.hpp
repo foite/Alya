@@ -4,16 +4,18 @@
 #include "types/e_login_method.hpp"
 #include <memory>
 #include <string>
-#include <vector>
+#include <unordered_map>
 
 class Manager {
 public:
   Manager();
+  ~Manager();
   void add_bot(std::string username, std::string password,
                std::string recovery_code, types::ELoginMethod method);
-  void get_bot(std::string username);
+  std::shared_ptr<Bot> get_bot(std::string username);
   void remove_bot(std::string username);
 
-  std::vector<std::shared_ptr<Bot>> bots;
+  std::unordered_map<std::string, std::tuple<std::shared_ptr<Bot>, std::thread>>
+      bots;
   ItemDatabase *item_db;
 };

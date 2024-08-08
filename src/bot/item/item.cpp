@@ -31,7 +31,7 @@ std::string read_string(FILE *file) {
 
 ItemDatabase *parse_from_file(const char *filename) {
   auto db = new ItemDatabase();
-  FILE *file = fopen(filename, "r");
+  FILE *file = fopen(filename, "rb");
   if (file == nullptr) {
     perror("Error opening file\n");
     delete db;

@@ -10,6 +10,8 @@
 #include "enet/enet.h"
 #include "packet/packet_handler.hpp"
 #include "spdlog/spdlog.h"
+#include "types/e_tankpacket_type.hpp"
+#include "types/tank_packet.hpp"
 #include "utils/proton.hpp"
 #include "utils/textparse.hpp"
 
@@ -21,8 +23,6 @@ Bot::Bot(const std::string &username, const std::string &password,
   this->info.recovery_code = std::move(recovery_code);
   this->info.method = method;
   this->item_db = item_db;
-
-  this->login();
 }
 
 void Bot::login() {
@@ -204,6 +204,49 @@ void Bot::get_token() {
 }
 
 void Bot::disconnect() { enet_peer_disconnect(this->peer, 0); }
+
+void Bot::place(int32_t offset_x, int32_t offset_y, uint32_t block_id) {
+  types::TankPacket pkt;
+  pkt.type = types::ETankPacketType::NetGamePacketTileChangeRequest;
+  pkt.vector_x = this->position.x;
+  pkt.vector_y = this->position.y;
+  pkt.int_x = std::floor(this->position.x / 32.0) + offset_x;
+  pkt.int_y = std::floor(this->position.y / 32.0) + offset_y;
+  pkt.value = block_id;
+
+  if (pkt.int_x <= std::floor(this->position.x / 32.0) + 4 &&
+      pkt.int_x >= std::floor(this->position.x / 32.0) - 4 &&
+      pkt.int_y <= std::floor(this->position.y / 32.0) + 4 &&
+      pkt.int_y >= std::floor(this->position.y / 32.0) - 4) {
+    ENetPacket *enet_packet = enet_packet_create(nullptr,
+                                                 sizeof(types::EPacketType) +
+                                                     sizeof(types::TankPacket) +
+                                                     pkt.extended_data_length,
+                                                 ENET_PACKET_FLAG_RELIABLE);
+    *(types::EPacketType *)enet_packet->data =
+        types::EPacketType::NetMessageGamePacket;
+    memcpy(enet_packet->data + sizeof(types::EPacketType), &pkt,
+           sizeof(types::TankPacket));
+
+    enet_peer_send(this->peer, 0, enet_packet);
+  }
+}
+
+void Bot::punch(int32_t offset_x, int32_t offset_y) {
+  this->place(offset_x, offset_y, 0);
+}
+
+void Bot::warp(std::string world_name) {
+  this->send_packet(
+      types::EPacketType::NetMessageGameMessage,
+      fmt::format("action|join_request\nname|{}\ninvitedWorld|0\n",
+                  world_name));
+}
+
+void Bot::talk(std::string message) {
+  this->send_packet(types::EPacketType::NetMessageGameMessage,
+                    fmt::format("action|input\n|text|{}\n", message));
+}
 
 void Bot::send_packet(types::EPacketType packet_type, std::string message) {
   ENetPacket *packet =
