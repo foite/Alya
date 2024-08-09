@@ -57,6 +57,10 @@ void onSetPos(Bot *bot, utils::variantlist_t variant) {
   utils::vector2_t pos = variant[1].get_vector2();
   bot->position.x = pos.m_x;
   bot->position.y = pos.m_y;
+  // this used to place first world lock
+  // if (bot->state.is_ingame) {
+  //   bot->place(0, -1, 9640);
+  // }
 }
 void onFtueButtonDataSet(Bot *bot, utils::variantlist_t variant) {
   int32_t unknown = variant[1].get_int32();
@@ -78,6 +82,11 @@ void setHasGrowID(Bot *bot, utils::variantlist_t variant) {
   bot->info.display_name = variant[2].get_string();
 }
 
+void onTalkBubble(Bot *bot, utils::variantlist_t variant) {
+  std::string message = variant[2].get_string();
+  spdlog::info("Received talk bubble: {}", message);
+}
+
 void Variant::handle(Bot *bot, uint8_t *data) {
   utils::variantlist_t variant{};
   variant.serialize_from_mem(data);
@@ -96,7 +105,8 @@ void Variant::handle(Bot *bot, uint8_t *data) {
                   {std::string("OnSetPos"), onSetPos},
                   {std::string("OnFtueButtonDataSet"), onFtueButtonDataSet},
                   {std::string("OnSpawn"), onSpawn},
-                  {std::string("SetHasGrowID"), setHasGrowID}};
+                  {std::string("SetHasGrowID"), setHasGrowID},
+                  {std::string("OnTalkBubble"), onTalkBubble}};
 
   if (handlers.find(function_call) != handlers.end()) {
     handlers[function_call](bot, variant);

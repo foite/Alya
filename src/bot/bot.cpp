@@ -2,7 +2,6 @@
 #include <cpr/cpr.h>
 #include <cstring>
 #include <fstream>
-#include <iostream>
 #include <magic_enum.hpp>
 #include <nlohmann/json.hpp>
 #include <regex>
@@ -132,6 +131,9 @@ void Bot::create_enet_host() {
 }
 
 void Bot::connect_to_server(std::string ip, int16_t port) {
+  this->info.status = "Connecting to server";
+  spdlog::info("Connecting to server");
+
   ENetAddress address;
   enet_address_set_host(&address, ip.c_str());
   address.port = port;

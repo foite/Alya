@@ -23,3 +23,6 @@
 	path = thirdparty/imgui
 	url = https://github.com/ocornut/imgui.git
 	branch = docking
+[submodule "growtopia-token"]
+	path = growtopia-token
+	url = https://github.com/CLOEI/growtopia-token.git

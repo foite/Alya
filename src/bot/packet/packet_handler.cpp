@@ -73,7 +73,7 @@ void Packet::handle(Bot *bot, uint8_t *data) {
       Variant::handle(bot, data + sizeof(types::TankPacket));
     }
     if (tank_packet.type == types::ETankPacketType::NetGamePacketSendMapData) {
-      bot->world.parse(data + sizeof(types::TankPacket));
+      // bot->world.parse(data + sizeof(types::TankPacket));
     }
     if (tank_packet.type ==
         types::ETankPacketType::NetGamePacketSendInventoryState) {
