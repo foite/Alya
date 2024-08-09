@@ -8,22 +8,17 @@ void World::parse(uint8_t *data) {
   uint16_t str_len = *reinterpret_cast<const uint16_t *>(&data[position]);
   position += sizeof(uint16_t);
 
-  std::string name(reinterpret_cast<const char *>(&data[position]), str_len);
+  this->name.assign(reinterpret_cast<const char *>(&data[position]), str_len);
   position += str_len;
 
-  uint32_t width = *reinterpret_cast<const uint32_t *>(&data[position]);
+  this->width = *reinterpret_cast<const uint32_t *>(&data[position]);
   position += sizeof(uint32_t);
-  uint32_t height = *reinterpret_cast<const uint32_t *>(&data[position]);
+  this->height = *reinterpret_cast<const uint32_t *>(&data[position]);
   position += sizeof(uint32_t);
-  uint32_t tile_count = *reinterpret_cast<const uint32_t *>(&data[position]);
+  this->tile_count = *reinterpret_cast<const uint32_t *>(&data[position]);
   position += sizeof(uint32_t);
 
   position += 5;
-
-  this->name = name;
-  this->width = width;
-  this->height = height;
-  this->tile_count = tile_count;
 
   for (uint32_t i = 0; i < tile_count; ++i) {
     Tile tile;

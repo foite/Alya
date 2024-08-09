@@ -8,7 +8,7 @@
 #include <magic_enum.hpp>
 
 void Packet::handle(Bot *bot, uint8_t *data) {
-  types::EPacketType packet_type{*(uint32_t *)data};
+  types::EPacketType packet_type{*reinterpret_cast<uint32_t *>(data)};
   auto name = magic_enum::enum_name(
       magic_enum::enum_value<types::EPacketType>(packet_type));
   spdlog::info("Received packet type: {}", name);
@@ -30,7 +30,7 @@ void Packet::handle(Bot *bot, uint8_t *data) {
     break;
   }
   case types::EPacketType::NetMessageGameMessage: {
-    std::string message = (char *)data;
+    std::string message = reinterpret_cast<char *>(data);
     spdlog::info("Received game message: {}", message);
 
     if (message.find("logon_fail") != std::string::npos) {
@@ -97,7 +97,7 @@ void Packet::handle(Bot *bot, uint8_t *data) {
           sizeof(types::EPacketType) + sizeof(types::TankPacket) +
               pkt.extended_data_length,
           ENET_PACKET_FLAG_RELIABLE);
-      *(types::EPacketType *)enet_packet->data =
+      *reinterpret_cast<types::EPacketType *>(enet_packet->data) =
           types::EPacketType::NetMessageGamePacket;
       memcpy(enet_packet->data + sizeof(types::EPacketType), &pkt,
              sizeof(types::TankPacket));

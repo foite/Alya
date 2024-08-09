@@ -5,8 +5,8 @@
 #include <string>
 
 namespace utils {
-std::string generate_klv(const std::string &protocol,
-                         const std::string &version, const std::string &rid) {
+inline std::string generate_klv(const std::string &protocol,
+                                const std::string &version, const std::string &rid) {
   constexpr std::array salts = {
       "e9fc40ec08f9ea6393f59c65e37f750aacddf68490c4f92d0d2523a5bc02ea63",
       "c85df9056ee603b849a93e1ebab5dd5f66e1fb8b2f4a8caef8d13b9f9e013fa4",
@@ -21,7 +21,7 @@ std::string generate_klv(const std::string &protocol,
                 sha256(md5(sha256(rid))) + salts[2] + constant_values[2]);
 }
 
-uint32_t hash_string(const std::string &input) {
+inline uint32_t hash_string(const std::string &input) {
   if (input.empty()) {
     return 0;
   }

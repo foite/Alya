@@ -18,9 +18,9 @@
 Bot::Bot(const std::string &username, const std::string &password,
          const std::string &recovery_code, const types::ELoginMethod method,
          ItemDatabase *item_db) {
-  this->info.username = std::move(username);
-  this->info.password = std::move(password);
-  this->info.recovery_code = std::move(recovery_code);
+  this->info.username = username;
+  this->info.password = password;
+  this->info.recovery_code = recovery_code;
   this->info.method = method;
   this->item_db = item_db;
 }
@@ -246,7 +246,7 @@ void Bot::place(int32_t offset_x, int32_t offset_y, uint32_t block_id) {
                                                      sizeof(types::TankPacket) +
                                                      pkt.extended_data_length,
                                                  ENET_PACKET_FLAG_RELIABLE);
-    *(types::EPacketType *)enet_packet->data =
+    *reinterpret_cast<types::EPacketType *>(enet_packet->data) =
         types::EPacketType::NetMessageGamePacket;
     memcpy(enet_packet->data + sizeof(types::EPacketType), &pkt,
            sizeof(types::TankPacket));
@@ -301,7 +301,7 @@ void Bot::walk(int32_t x, int32_t y, bool ap) {
                                                      sizeof(types::TankPacket) +
                                                      pkt.extended_data_length,
                                                  ENET_PACKET_FLAG_RELIABLE);
-    *(types::EPacketType *)enet_packet->data =
+    *reinterpret_cast<types::EPacketType *>(enet_packet->data) =
         types::EPacketType::NetMessageGamePacket;
     memcpy(enet_packet->data + sizeof(types::EPacketType), &pkt,
            sizeof(types::TankPacket));
@@ -314,7 +314,7 @@ void Bot::send_packet(types::EPacketType packet_type, std::string message) {
   ENetPacket *packet =
       enet_packet_create(nullptr, sizeof(types::EPacketType) + message.length(),
                          ENET_PACKET_FLAG_RELIABLE);
-  *(types::EPacketType *)packet->data = packet_type;
+  *reinterpret_cast<types::EPacketType *>(packet->data) = packet_type;
   memcpy(packet->data + sizeof(types::EPacketType), message.c_str(),
          message.length());
 

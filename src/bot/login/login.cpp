@@ -65,7 +65,7 @@ std::string Login::get_google_token(std::string &url, std::string &username,
 
 std::string Login::extract_token_from_html(std::string &body) {
   const std::regex pattern(
-      "name=\"_token\"\\s+type=\"hidden\"\\s+value=\"([^\"]*)\"");
+      R"lit(name="_token"\s+type="hidden"\s+value="([^"]*)")lit");
   auto matches_begin = std::sregex_iterator(body.begin(), body.end(), pattern);
   auto matches_end = std::sregex_iterator();
 

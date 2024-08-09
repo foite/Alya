@@ -10,11 +10,11 @@ class Manager {
 public:
   Manager();
   ~Manager();
-  void add_bot(std::string username, std::string password,
-               std::string recovery_code, types::ELoginMethod method,
+  void add_bot(const std::string &username, const std::string &password,
+               const std::string &recovery_code, types::ELoginMethod method,
                bool save = false);
-  std::shared_ptr<Bot> get_bot(std::string username);
-  void remove_bot(std::string username);
+  std::shared_ptr<Bot> get_bot(const std::string &username);
+  void remove_bot(const std::string &username);
 
   std::unordered_map<std::string, std::tuple<std::shared_ptr<Bot>, std::thread>>
       bots;

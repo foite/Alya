@@ -29,8 +29,8 @@ Manager::~Manager() {
   }
 }
 
-void Manager::add_bot(std::string username, std::string password,
-                      std::string recovery_code, types::ELoginMethod method,
+void Manager::add_bot(const std::string &username, const std::string &password,
+                      const std::string &recovery_code, types::ELoginMethod method,
                       bool save) {
   if (save) {
     std::ifstream file("config.json");
@@ -49,7 +49,7 @@ void Manager::add_bot(std::string username, std::string password,
   this->bots[bot->info.username] = std::make_tuple(bot, std::move(t));
 }
 
-std::shared_ptr<Bot> Manager::get_bot(std::string username) {
+std::shared_ptr<Bot> Manager::get_bot(const std::string &username) {
   auto it = bots.find(username);
   if (it != bots.end()) {
     return std::get<0>(it->second);
@@ -57,7 +57,7 @@ std::shared_ptr<Bot> Manager::get_bot(std::string username) {
   return nullptr;
 }
 
-void Manager::remove_bot(std::string username) {
+void Manager::remove_bot(const std::string &username) {
   auto it = bots.find(username);
   if (it != bots.end()) {
     auto &[bot, thread] = it->second;

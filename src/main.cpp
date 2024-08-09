@@ -83,7 +83,7 @@ int main() {
     glfwGetFramebufferSize(window, &display_w, &display_h);
 
     ImGuiIO &io = ImGui::GetIO();
-    io.DisplaySize = ImVec2((float)display_w, (float)display_h);
+    io.DisplaySize = ImVec2(static_cast<float>(display_w), static_cast<float>(display_h));
 
     if (glfwGetWindowAttrib(window, GLFW_ICONIFIED) != 0) {
       ImGui_ImplGlfw_Sleep(10);
@@ -109,7 +109,7 @@ int main() {
     if (ImGui::Button("Add bot"))
       ImGui::OpenPopup("Add bot");
 
-    if (ImGui::BeginPopupModal("Add bot", NULL,
+    if (ImGui::BeginPopupModal("Add bot", nullptr,
                                ImGuiWindowFlags_AlwaysAutoResize)) {
       static char username[64];
       static char password[64];
@@ -123,7 +123,7 @@ int main() {
       ImGui::Combo("Method", &method, "Legacy\0Google\0Apple\0Ubisoft\0");
 
       if (ImGui::Button("Add")) {
-        manager.add_bot(username, password, recovery_code, ELoginMethod(method),
+        manager.add_bot(username, password, recovery_code, static_cast<ELoginMethod>(method),
                         true);
         ImGui::CloseCurrentPopup();
       }
@@ -166,7 +166,7 @@ int main() {
           bot->warp(world_name);
         }
       }
-      ImGui::Columns(3, NULL, false);
+      ImGui::Columns(3, nullptr, false);
       ImGui::SetColumnWidth(0, 60);
       ImGui::SetColumnWidth(1, 60);
       ImGui::SetColumnWidth(2, 60);
