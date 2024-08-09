@@ -27,6 +27,7 @@ struct State {
   bool is_running;
   bool is_redirect;
   bool is_ingame;
+  bool is_not_allowed_to_warp;
   bool is_banned;
 };
 

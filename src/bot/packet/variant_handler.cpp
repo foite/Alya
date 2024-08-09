@@ -85,6 +85,11 @@ void setHasGrowID(Bot *bot, utils::variantlist_t variant) {
 void onTalkBubble(Bot *bot, utils::variantlist_t variant) {
   std::string message = variant[2].get_string();
   spdlog::info("Received talk bubble: {}", message);
+
+  if (message.find("You must complete the tutorial before you can visit other "
+                   "worlds!") != std::string::npos) {
+    bot->state.is_not_allowed_to_warp = true;
+  }
 }
 
 void Variant::handle(Bot *bot, uint8_t *data) {

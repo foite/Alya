@@ -150,7 +150,7 @@ int main() {
     if (!selected_bot.empty()) {
       auto bot = manager.get_bot(selected_bot);
       if (bot != nullptr) {
-        ImGui::Text("Username: %s", bot->info.username.c_str());
+        ImGui::Text("Display name: %s", bot->info.display_name.c_str());
         ImGui::Text("Status: %s", bot->info.status.c_str());
         ImGui::SameLine();
         ImGui::Text("Timeout: %d", bot->info.timeout);

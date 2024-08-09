@@ -73,6 +73,7 @@ void Packet::handle(Bot *bot, uint8_t *data) {
       Variant::handle(bot, data + sizeof(types::TankPacket));
     }
     if (tank_packet.type == types::ETankPacketType::NetGamePacketSendMapData) {
+      // It doesn't work fully yet resulting in a crash
       // bot->world.parse(data + sizeof(types::TankPacket));
     }
     if (tank_packet.type ==

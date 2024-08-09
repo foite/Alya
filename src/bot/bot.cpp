@@ -260,12 +260,14 @@ void Bot::punch(int32_t offset_x, int32_t offset_y) {
 }
 
 void Bot::warp(std::string world_name) {
-  this->info.status = fmt::format("Warping to world: {}", world_name);
-  spdlog::info("Warping to world: {}", world_name);
-  this->send_packet(
-      types::EPacketType::NetMessageGameMessage,
-      fmt::format("action|join_request\nname|{}\ninvitedWorld|0\n",
-                  world_name));
+  if (!this->state.is_not_allowed_to_warp) {
+    this->info.status = fmt::format("Warping to world: {}", world_name);
+    spdlog::info("Warping to world: {}", world_name);
+    this->send_packet(
+        types::EPacketType::NetMessageGameMessage,
+        fmt::format("action|join_request\nname|{}\ninvitedWorld|0\n",
+                    world_name));
+  }
 }
 
 void Bot::talk(std::string message) {
