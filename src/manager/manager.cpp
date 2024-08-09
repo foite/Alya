@@ -23,7 +23,12 @@ Manager::~Manager() {
   for (auto &[username, bot_thread_tuple] : bots) {
     auto &[bot, thread] = bot_thread_tuple;
     if (thread.joinable()) {
+#ifdef _WIN32
+      WaitForSingleObject(thread.native_handle(), INFINITE);
+      CloseHandle(thread.native_handle());
+#else
       pthread_cancel(thread.native_handle());
+#endif 
       thread.join();
     }
   }
@@ -62,7 +67,12 @@ void Manager::remove_bot(std::string username) {
   if (it != bots.end()) {
     auto &[bot, thread] = it->second;
     if (thread.joinable()) {
+#ifdef _WIN32
+      WaitForSingleObject(thread.native_handle(), INFINITE);
+      CloseHandle(thread.native_handle());
+#else
       pthread_cancel(thread.native_handle());
+#endif 
       thread.join();
     }
     bots.erase(it);
