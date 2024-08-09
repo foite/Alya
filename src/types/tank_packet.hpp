@@ -5,21 +5,21 @@
 namespace types {
 struct TankPacket {
   types::ETankPacketType type;
-  uint8_t unk1;
-  uint8_t unk2;
-  uint8_t unk3;
-  uint32_t net_id;
-  uint32_t unk4;
+  uint8_t unk1 = 0;
+  uint8_t unk2 = 0;
+  uint8_t unk3 = 0;
+  uint32_t net_id = 0;
+  uint32_t unk4 = 0;
   uint32_t flags = 0;
-  uint32_t unk6;
-  uint32_t value;
-  float vector_x;
-  float vector_y;
-  float vector_x2;
-  float vector_y2;
-  float unk12;
-  int32_t int_x;
-  int32_t int_y;
-  uint32_t extended_data_length;
+  uint32_t unk6 = 0;
+  uint32_t value = 0;
+  float vector_x = 0;
+  float vector_y = 0;
+  float vector_x2 = 0;
+  float vector_y2 = 0;
+  float unk12 = 0;
+  int32_t int_x = 0;
+  int32_t int_y = 0;
+  uint32_t extended_data_length = 0;
 };
 } // namespace types

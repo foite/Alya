@@ -16,6 +16,7 @@ add_subdirectory(thirdparty/magic_enum)
 add_subdirectory(thirdparty/spdlog)
 add_subdirectory(thirdparty/json)
 add_subdirectory(thirdparty/glfw)
+add_subdirectory(thirdparty/enet)
 
 include_directories(src)
 include_directories(thirdparty/imgui)
@@ -29,9 +30,5 @@ file(GLOB IMGUI_SOURCES
     thirdparty/imgui/backends/imgui_impl_opengl3.* 
     thirdparty/imgui/misc/cpp/imgui_stdlib.*
 )
-file(GLOB ENET_SOURCES 
-    thirdparty/enet/*.c
-)
-
 add_executable(${PROJECT_NAME} ${SOURCES} ${IMGUI_SOURCES} ${ENET_SOURCES})
-target_link_libraries(${PROJECT_NAME} nlohmann_json::nlohmann_json winmm OpenGL::GL glfw OpenSSL::SSL cpr::cpr fmt::fmt magic_enum::magic_enum spdlog::spdlog)
+target_link_libraries(${PROJECT_NAME} nlohmann_json::nlohmann_json enet OpenGL::GL glfw OpenSSL::SSL cpr::cpr fmt::fmt magic_enum::magic_enum spdlog::spdlog)

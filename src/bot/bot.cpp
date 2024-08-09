@@ -2,7 +2,6 @@
 #include <cpr/cpr.h>
 #include <cstring>
 #include <fstream>
-#include <iostream>
 #include <magic_enum.hpp>
 #include <nlohmann/json.hpp>
 #include <regex>
@@ -156,11 +155,12 @@ void Bot::get_oauth_links() {
   this->info.status = "Getting OAuth links";
   spdlog::info("Getting OAuth links");
   while (true) {
-    std::string encoded_body = cpr::util::urlEncode(this->info.login_info.to_string());
+    std::string encoded_body =
+        cpr::util::urlEncode(this->info.login_info.to_string());
     cpr::Response r = cpr::Post(
-        cpr::Url{"https://login.growtopiagame.com/player/login/dashboard?valKey=40db4045f2d8c572efe8c4a060605726"},
-        cpr::UserAgent{this->user_agent},
-        cpr::Body{encoded_body},
+        cpr::Url{"https://login.growtopiagame.com/player/login/"
+                 "dashboard?valKey=40db4045f2d8c572efe8c4a060605726"},
+        cpr::UserAgent{this->user_agent}, cpr::Body{encoded_body},
         cpr::Header{{"Content-Type", "application/x-www-form-urlencoded"}});
     const std::regex pattern(
         "https:\\/\\/login\\.growtopiagame\\.com\\/(apple|google|player\\/"
@@ -251,6 +251,7 @@ void Bot::punch(int32_t offset_x, int32_t offset_y) {
 }
 
 void Bot::warp(std::string world_name) {
+  this->info.status = fmt::format("Warping to world: {}", world_name);
   spdlog::info("Warping to world: {}", world_name);
   this->send_packet(
       types::EPacketType::NetMessageGameMessage,
@@ -263,7 +264,9 @@ void Bot::talk(std::string message) {
                     fmt::format("action|input\n|text|{}\n", message));
 }
 
-// TODO: Fix Ban
+// I'm not sure why this resulted into a ban, let me know if you had any idea
+// EDIT: C++ occupied uninitialized variable with garbage values which
+// resulted in a wrong value being sent to the server
 void Bot::walk(int32_t x, int32_t y, bool ap) {
   if (ap) {
     this->position.x = x * 32;
@@ -279,10 +282,7 @@ void Bot::walk(int32_t x, int32_t y, bool ap) {
   pkt.vector_y = this->position.y;
   pkt.int_x = -1;
   pkt.int_y = -1;
-  // I'm not sure why this resulted into a ban, let me know if you had any idea
-  // pkt.flags |= 1 << 1;
-  // pkt.flags |= 1 << 5;
-  pkt.flags = 0;
+  pkt.flags |= (1 << 1) | (1 << 5);
 
   if (this->state.is_running && this->world.name != "EXIT") {
     ENetPacket *enet_packet = enet_packet_create(nullptr,
