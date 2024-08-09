@@ -2,6 +2,7 @@
 #include <cpr/cpr.h>
 #include <cstring>
 #include <fstream>
+#include <iostream>
 #include <magic_enum.hpp>
 #include <nlohmann/json.hpp>
 #include <regex>
@@ -209,9 +210,15 @@ void Bot::get_token() {
         Login::get_legacy_token(this->info.oauth_links["legacy"],
                                 this->info.username, this->info.password);
     break;
-  default:
+  }
+  case types::ELoginMethod::GOOGLE: {
+    this->info.token =
+        Login::get_google_token(this->info.oauth_links["google"],
+                                this->info.username, this->info.password);
     break;
   }
+  default:
+    break;
   }
 
   spdlog::info("Token: {}", this->info.token);

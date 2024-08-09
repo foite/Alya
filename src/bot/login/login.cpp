@@ -1,7 +1,11 @@
 #include "login.hpp"
+#include "cpr/api.h"
 #include "cpr/cpr.h"
+#include "cpr/cprtypes.h"
+#include "cpr/payload.h"
+#include "cpr/response.h"
+#include "cpr/timeout.h"
 #include "spdlog/spdlog.h"
-#include <iostream>
 #include <nlohmann/json.hpp>
 #include <regex>
 #include <string>
@@ -40,6 +44,22 @@ std::string Login::get_legacy_token(std::string &url, std::string &username,
     if (j["status"] == "success") {
       return j["token"];
     }
+  }
+}
+
+std::string Login::get_google_token(std::string &url, std::string &username,
+                                    std::string &password) {
+  while (true) {
+    cpr::Response r = cpr::Post(
+        cpr::Url{"localhost:5000/token"},
+        cpr::Payload{{"url", url}, {"email", username}, {"password", password}},
+        cpr::Timeout{1000 * 60});
+    if (r.status_code != 200) {
+      spdlog::error("Failed to get token, retrying...");
+      continue;
+    }
+
+    return r.text;
   }
 }
 
