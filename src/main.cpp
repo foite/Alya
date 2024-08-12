@@ -110,6 +110,15 @@ int main() {
     ImGui::SameLine();
     if (ImGui::Button("Add bot"))
       ImGui::OpenPopup("Add bot");
+    ImGui::SameLine();
+    if (!selected_bot.empty()) {
+      if (ImGui::Button("Remove bot")) {
+        if (!selected_bot.empty()) {
+          manager.remove_bot(selected_bot);
+          selected_bot.clear();
+        }
+      }
+    }
 
     if (ImGui::BeginPopupModal("Add bot", nullptr,
                                ImGuiWindowFlags_AlwaysAutoResize)) {
@@ -155,7 +164,7 @@ int main() {
         ImGui::Text("Display name: %s", bot->info.display_name.c_str());
         ImGui::Text("Status: %s", bot->info.status.c_str());
         ImGui::SameLine();
-        ImGui::Text("Timeout: %d", bot->info.timeout);
+        ImGui::Text("| Timeout: %d", bot->info.timeout);
         ImGui::Text("Token: %s", bot->info.token.c_str());
         ImGui::Text("World: %s", bot->world.name.c_str());
         ImGui::Text("Position: %f, %f", bot->position.x / 32,

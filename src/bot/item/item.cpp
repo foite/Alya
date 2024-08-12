@@ -1,123 +1,126 @@
 #include "item.hpp"
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
+#include <fstream>
+#include <iostream>
+#include <memory>
 #include <string>
+#include <unordered_map>
 
 const char *CIPHER = "PBG892FXX982ABC*";
 
-std::string decrypt_string(FILE *file, uint32_t item_id) {
+std::string decrypt_string(std::ifstream &file, uint32_t item_id) {
   uint16_t len = 0;
-  fread(&len, sizeof(uint16_t), 1, file);
+  file.read(reinterpret_cast<char *>(&len), sizeof(uint16_t));
   std::string str(len, '\0');
 
   for (uint16_t i = 0; i < len; i++) {
     int secret_char_pos = (i + item_id) % strlen(CIPHER);
     char secret_char = CIPHER[secret_char_pos];
     char input_char;
-    fread(&input_char, sizeof(char), 1, file);
+    file.read(&input_char, sizeof(char));
     str[i] = input_char ^ secret_char;
   }
   return str;
 }
 
-std::string read_string(FILE *file) {
+std::string read_string(std::ifstream &file) {
   uint16_t len = 0;
-  fread(&len, sizeof(uint16_t), 1, file);
+  file.read(reinterpret_cast<char *>(&len), sizeof(uint16_t));
   std::string str(len, '\0');
-  fread(&str[0], sizeof(char), len, file);
+  file.read(&str[0], len);
   return str;
 }
 
-ItemDatabase *parse_from_file(const char *filename) {
-  auto db = new ItemDatabase();
-  FILE *file = fopen(filename, "rb");
-  if (file == nullptr) {
-    perror("Error opening file\n");
-    delete db;
+std::shared_ptr<ItemDatabase> parse_from_file(const char *filename) {
+  auto db = std::make_shared<ItemDatabase>();
+  std::ifstream file(filename, std::ios::binary);
+  if (!file) {
+    std::cerr << "Error opening file\n";
     return nullptr;
   }
 
-  fread(&db->version, sizeof(uint16_t), 1, file);
-  fread(&db->item_count, sizeof(uint32_t), 1, file);
+  file.read(reinterpret_cast<char *>(&db->version), sizeof(uint16_t));
+  file.read(reinterpret_cast<char *>(&db->item_count), sizeof(uint32_t));
 
-  db->items.resize(db->item_count);
+  db->items.reserve(db->item_count);
 
   for (uint32_t i = 0; i < db->item_count; i++) {
-    fread(&db->items[i].id, sizeof(uint32_t), 1, file);
-    if (i != db->items[i].id) {
-      perror("Item ID mismatch\n");
-      fclose(file);
-      delete db;
+    Item item;
+    file.read(reinterpret_cast<char *>(&item.id), sizeof(uint32_t));
+    if (i != item.id) {
+      std::cerr << "Item ID mismatch\n";
       return nullptr;
     }
 
-    fread(&db->items[i].flags, sizeof(uint16_t), 1, file);
-    fread(&db->items[i].type, sizeof(char), 1, file);
-    fread(&db->items[i].material, sizeof(char), 1, file);
-    db->items[i].name = decrypt_string(file, db->items[i].id);
-    db->items[i].texture_name = read_string(file);
-    fread(&db->items[i].texture_hash, sizeof(uint32_t), 1, file);
-    fread(&db->items[i].visual_effect, sizeof(char), 1, file);
-    fread(&db->items[i].cooking_ingredient_type, sizeof(uint32_t), 1, file);
-    fread(&db->items[i].texture_x, sizeof(char), 1, file);
-    fread(&db->items[i].texture_y, sizeof(char), 1, file);
-    fread(&db->items[i].render_type, sizeof(char), 1, file);
-    fread(&db->items[i].is_stripey_wallpaper, sizeof(char), 1, file);
-    fread(&db->items[i].collision_type, sizeof(char), 1, file);
-    fread(&db->items[i].block_health, sizeof(char), 1, file);
-    fread(&db->items[i].drop_chance, sizeof(uint32_t), 1, file);
-    fread(&db->items[i].clothing_type, sizeof(char), 1, file);
-    fread(&db->items[i].rarity, sizeof(uint16_t), 1, file);
-    fread(&db->items[i].max_items, sizeof(char), 1, file);
-    db->items[i].extra_file_name = read_string(file);
-    fread(&db->items[i].extra_file_hash, sizeof(uint32_t), 1, file);
-    fread(&db->items[i].audio_volume, sizeof(uint32_t), 1, file);
-    db->items[i].pet_name = read_string(file);
-    db->items[i].pet_prefix = read_string(file);
-    db->items[i].pet_suffix = read_string(file);
-    db->items[i].pet_ability = read_string(file);
-    fread(&db->items[i].seed_base_sprite, sizeof(char), 1, file);
-    fread(&db->items[i].seed_base_overlay, sizeof(char), 1, file);
-    fread(&db->items[i].tree_base_sprite, sizeof(char), 1, file);
-    fread(&db->items[i].tree_base_overlay, sizeof(char), 1, file);
-    fread(&db->items[i].base_color, sizeof(uint32_t), 1, file);
-    fread(&db->items[i].overlay_color, sizeof(uint32_t), 1, file);
-    fread(&db->items[i].ingredient, sizeof(uint32_t), 1, file);
-    fread(&db->items[i].grow_time, sizeof(uint32_t), 1, file);
-    fseek(file, sizeof(uint16_t), SEEK_CUR);
-    fread(&db->items[i].is_rayman, sizeof(uint16_t), 1, file);
-    db->items[i].extra_options = read_string(file);
-    db->items[i].texture_path_2 = read_string(file);
-    db->items[i].extra_options_2 = read_string(file);
-    fseek(file, 80, SEEK_CUR);
+    file.read(reinterpret_cast<char *>(&item.flags), sizeof(uint16_t));
+    file.read(&item.type, sizeof(char));
+    file.read(&item.material, sizeof(char));
+    item.name = decrypt_string(file, item.id);
+    item.texture_name = read_string(file);
+    file.read(reinterpret_cast<char *>(&item.texture_hash), sizeof(uint32_t));
+    file.read(&item.visual_effect, sizeof(char));
+    file.read(reinterpret_cast<char *>(&item.cooking_ingredient_type),
+              sizeof(uint32_t));
+    file.read(&item.texture_x, sizeof(char));
+    file.read(&item.texture_y, sizeof(char));
+    file.read(&item.render_type, sizeof(char));
+    file.read(&item.is_stripey_wallpaper, sizeof(char));
+    file.read(&item.collision_type, sizeof(char));
+    file.read(&item.block_health, sizeof(char));
+    file.read(reinterpret_cast<char *>(&item.drop_chance), sizeof(uint32_t));
+    file.read(&item.clothing_type, sizeof(char));
+    file.read(reinterpret_cast<char *>(&item.rarity), sizeof(uint16_t));
+    file.read(&item.max_items, sizeof(char));
+    item.extra_file_name = read_string(file);
+    file.read(reinterpret_cast<char *>(&item.extra_file_hash),
+              sizeof(uint32_t));
+    file.read(reinterpret_cast<char *>(&item.audio_volume), sizeof(uint32_t));
+    item.pet_name = read_string(file);
+    item.pet_prefix = read_string(file);
+    item.pet_suffix = read_string(file);
+    item.pet_ability = read_string(file);
+    file.read(&item.seed_base_sprite, sizeof(char));
+    file.read(&item.seed_base_overlay, sizeof(char));
+    file.read(&item.tree_base_sprite, sizeof(char));
+    file.read(&item.tree_base_overlay, sizeof(char));
+    file.read(reinterpret_cast<char *>(&item.base_color), sizeof(uint32_t));
+    file.read(reinterpret_cast<char *>(&item.overlay_color), sizeof(uint32_t));
+    file.read(reinterpret_cast<char *>(&item.ingredient), sizeof(uint32_t));
+    file.read(reinterpret_cast<char *>(&item.grow_time), sizeof(uint32_t));
+    file.seekg(sizeof(uint16_t), std::ios::cur);
+    file.read(reinterpret_cast<char *>(&item.is_rayman), sizeof(uint16_t));
+    item.extra_options = read_string(file);
+    item.texture_path_2 = read_string(file);
+    item.extra_options_2 = read_string(file);
+    file.seekg(80, std::ios::cur);
 
     if (db->version >= 11) {
-      db->items[i].punch_option = read_string(file);
+      item.punch_option = read_string(file);
     }
     if (db->version >= 12) {
-      fseek(file, 13, SEEK_CUR);
+      file.seekg(13, std::ios::cur);
     }
     if (db->version >= 13) {
-      fseek(file, 4, SEEK_CUR);
+      file.seekg(4, std::ios::cur);
     }
     if (db->version >= 14) {
-      fseek(file, 4, SEEK_CUR);
+      file.seekg(4, std::ios::cur);
     }
     if (db->version >= 15) {
-      fseek(file, 25, SEEK_CUR);
+      file.seekg(25, std::ios::cur);
       read_string(file);
     }
     if (db->version >= 16) {
       read_string(file);
     }
     if (db->version >= 17) {
-      fseek(file, 4, SEEK_CUR);
+      file.seekg(4, std::ios::cur);
     }
     if (db->version >= 18) {
-      fseek(file, 4, SEEK_CUR);
+      file.seekg(4, std::ios::cur);
     }
+
+    db->items[item.id] = item;
   }
-  fclose(file);
   return db;
 }

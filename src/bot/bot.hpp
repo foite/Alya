@@ -14,7 +14,7 @@ class Bot {
 public:
   Bot(const std::string &username, const std::string &password,
       const std::string &recovery_code, const types::ELoginMethod method,
-      ItemDatabase *item_db);
+      std::shared_ptr<ItemDatabase> item_db);
   void disconnect();
   void punch(int32_t offset_x, int32_t offset_y);
   void place(int32_t offset_x, int32_t offset_y, uint32_t block_id);
@@ -42,7 +42,7 @@ public:
       "like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0";
   ENetHost *host;
   ENetPeer *peer;
-  ItemDatabase *item_db;
+  std::shared_ptr<ItemDatabase> item_db;
   Info info;
   State state;
   Server server;

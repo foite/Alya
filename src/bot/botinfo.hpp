@@ -16,9 +16,9 @@ struct Info {
   std::unordered_map<std::string, std::string> server_data;
   std::string token;
   types::LoginInfo login_info;
-  int32_t ping;
+  int32_t ping = 0;
   std::string status;
-  int32_t timeout;
+  int32_t timeout = 0;
 };
 
 struct State {
@@ -32,11 +32,11 @@ struct State {
 };
 
 struct Server {
-  std::string ip;
-  int16_t port;
+  std::string ip = "0.0.0.0";
+  int16_t port = 00000;
 };
 
 struct Position {
-  float_t x;
-  float_t y;
+  float_t x = 0;
+  float_t y = 0;
 };

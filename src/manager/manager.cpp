@@ -60,6 +60,20 @@ std::shared_ptr<Bot> Manager::get_bot(const std::string &username) {
 void Manager::remove_bot(const std::string &username) {
   auto it = bots.find(username);
   if (it != bots.end()) {
+    std::ifstream file("config.json");
+    nlohmann::json j = nlohmann::json::parse(file);
+    file.close();
+
+    j["bots"].erase(std::remove_if(j["bots"].begin(), j["bots"].end(),
+                                   [username](const nlohmann::json &bot) {
+                                     return bot[0] == username;
+                                   }),
+                    j["bots"].end());
+
+   std::ofstream out("config.json");
+    out << j.dump(2);
+   out.close();
+
     auto &[bot, thread] = it->second;
     bot->state.is_running = false;
     if (thread.joinable()) {

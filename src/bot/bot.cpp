@@ -17,7 +17,7 @@
 
 Bot::Bot(const std::string &username, const std::string &password,
          const std::string &recovery_code, const types::ELoginMethod method,
-         ItemDatabase *item_db) {
+         std::shared_ptr<ItemDatabase> item_db) {
   this->info.username = username;
   this->info.password = password;
   this->info.recovery_code = recovery_code;
@@ -86,7 +86,7 @@ void Bot::start_event_loop() {
 
 void Bot::process_event() {
   ENetEvent event;
-  while (enet_host_service(this->host, &event, 1000)) {
+  while (enet_host_service(this->host, &event, 100)) {
     switch (event.type) {
     case ENET_EVENT_TYPE_CONNECT:
       this->info.status = "Connected";

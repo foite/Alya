@@ -18,5 +18,5 @@ public:
 
   std::unordered_map<std::string, std::tuple<std::shared_ptr<Bot>, std::thread>>
       bots;
-  ItemDatabase *item_db;
+  std::shared_ptr<ItemDatabase> item_db;
 };

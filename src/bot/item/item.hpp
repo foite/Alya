@@ -1,7 +1,8 @@
 #pragma once
 #include <cstdint>
+#include <memory>
 #include <string>
-#include <vector>
+#include <unordered_map>
 
 struct Item {
   uint32_t id;
@@ -48,9 +49,9 @@ struct Item {
 struct ItemDatabase {
   uint16_t version;
   uint32_t item_count;
-  std::vector<Item> items;
+  std::unordered_map<uint32_t, Item> items;
 };
 
 std::string decrypt_string(FILE *file, uint32_t id);
 std::string read_string(FILE *file);
-ItemDatabase *parse_from_file(const char *filename);
+std::shared_ptr<ItemDatabase> parse_from_file(const char *filename);
