@@ -67,6 +67,8 @@ int main() {
   ImGuiIO &io = ImGui::GetIO();
   (void)io;
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+  // io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+  // io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
   GUI::set_theme();
 
@@ -83,7 +85,8 @@ int main() {
     glfwGetFramebufferSize(window, &display_w, &display_h);
 
     ImGuiIO &io = ImGui::GetIO();
-    io.DisplaySize = ImVec2(static_cast<float>(display_w), static_cast<float>(display_h));
+    io.DisplaySize =
+        ImVec2(static_cast<float>(display_w), static_cast<float>(display_h));
 
     if (glfwGetWindowAttrib(window, GLFW_ICONIFIED) != 0) {
       ImGui_ImplGlfw_Sleep(10);
@@ -94,8 +97,7 @@ int main() {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    static float f = 0.0f;
-    static int counter = 0;
+    // ImGui::ShowDemoWindow(&show_demo_window);
 
     ImGui::SetNextWindowPos(ImVec2(0, 0));
     ImGui::SetNextWindowSize(io.DisplaySize);
@@ -123,8 +125,8 @@ int main() {
       ImGui::Combo("Method", &method, "Legacy\0Google\0Apple\0Ubisoft\0");
 
       if (ImGui::Button("Add")) {
-        manager.add_bot(username, password, recovery_code, static_cast<ELoginMethod>(method),
-                        true);
+        manager.add_bot(username, password, recovery_code,
+                        static_cast<ELoginMethod>(method), true);
         ImGui::CloseCurrentPopup();
       }
       ImGui::SameLine();
@@ -221,6 +223,13 @@ int main() {
                  clear_color.z * clear_color.w, clear_color.w);
     glClear(GL_COLOR_BUFFER_BIT);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+      GLFWwindow *backup_current_context = glfwGetCurrentContext();
+      ImGui::UpdatePlatformWindows();
+      ImGui::RenderPlatformWindowsDefault();
+      glfwMakeContextCurrent(backup_current_context);
+    }
 
     glfwSwapBuffers(window);
   }
