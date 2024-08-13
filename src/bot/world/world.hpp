@@ -13,7 +13,6 @@ struct Door {
 
 struct Sign {
   std::string text;
-  uint32_t unknown_1;
 };
 
 struct Lock {
@@ -467,12 +466,12 @@ enum class TileType {
 };
 
 struct DroppedItem {
-  uint16_t id;
-  float x;
-  float y;
-  uint8_t count;
-  uint8_t flags;
-  uint32_t uid;
+  uint16_t id = 0;
+  float x = 0;
+  float y = 0;
+  uint8_t count = 0;
+  uint8_t flags = 0;
+  uint32_t uid = 0;
 };
 
 using TileData = std::variant<
@@ -492,30 +491,30 @@ using TileData = std::variant<
     KrakenGalaticBlock, FriendsEntrance>;
 
 struct Tile {
-  uint16_t foreground_item_id;
-  uint16_t background_item_id;
-  uint16_t parent_block_index;
-  uint16_t flags;
-  TileType type;
+  uint16_t foreground_item_id = 0;
+  uint16_t background_item_id = 0;
+  uint16_t parent_block_index = 0;
+  uint16_t flags = 0;
+  TileType type = TileType::Basic;
   TileData data;
 };
 
 struct Dropped {
-  uint32_t items_count;
-  uint32_t last_dropped_item_uid;
+  uint32_t items_count = 0;
+  uint32_t last_dropped_item_uid = 0;
   std::vector<DroppedItem> items;
 };
 
 class World {
 public:
   std::string name = "EXIT";
-  uint32_t width;
-  uint32_t height;
-  uint32_t tile_count;
+  uint32_t width = 0;
+  uint32_t height = 0;
+  uint32_t tile_count = 0;
   std::vector<Tile> tiles;
   Dropped dropped;
-  uint16_t base_weather;
-  uint16_t current_weather;
+  uint16_t base_weather = 0;
+  uint16_t current_weather = 0;
 
   void parse(uint8_t *data);
 

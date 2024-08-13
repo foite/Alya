@@ -1,10 +1,12 @@
 #include "packet_handler.hpp"
 #include "bot/packet/variant_handler.hpp"
 #include "fmt/format.h"
+#include "spdlog/spdlog.h"
 #include "types/e_packet_type.hpp"
 #include "types/e_tankpacket_type.hpp"
 #include "types/tank_packet.hpp"
 #include <cstring>
+#include <fstream>
 #include <magic_enum.hpp>
 
 void Packet::handle(Bot *bot, uint8_t *data) {
@@ -73,6 +75,12 @@ void Packet::handle(Bot *bot, uint8_t *data) {
       Variant::handle(bot, data + sizeof(types::TankPacket));
     }
     if (tank_packet.type == types::ETankPacketType::NetGamePacketSendMapData) {
+      std::ofstream file("world.dat", std::ios::binary);
+      file.write(reinterpret_cast<char *>(data + sizeof(types::TankPacket)),
+                 tank_packet.extended_data_length);
+      file.close();
+      spdlog::warn("World data saved to world.dat");
+
       // It doesn't work fully yet resulting in a crash
       bot->world.parse(data + sizeof(types::TankPacket));
     }

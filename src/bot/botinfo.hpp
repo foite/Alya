@@ -22,13 +22,13 @@ struct Info {
 };
 
 struct State {
-  uint32_t net_id;
-  int32_t gems;
-  bool is_running;
-  bool is_redirect;
-  bool is_ingame;
-  bool is_not_allowed_to_warp;
-  bool is_banned;
+  uint32_t net_id = 0;
+  int32_t gems = 0;
+  bool is_running = false;
+  bool is_redirect = false;
+  bool is_ingame = false;
+  bool is_not_allowed_to_warp = false;
+  bool is_banned = false;
 };
 
 struct Server {

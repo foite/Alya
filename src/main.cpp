@@ -170,6 +170,7 @@ int main() {
         ImGui::Text("Position: %f, %f", bot->position.x / 32,
                     bot->position.y / 32);
         ImGui::Text("Ping: %d", bot->info.ping);
+        ImGui::Text("RID: %s", bot->info.login_info.rid.c_str());
 
         static char world_name[64];
         ImGui::InputText("World name", world_name, IM_ARRAYSIZE(world_name));

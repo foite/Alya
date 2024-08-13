@@ -9,7 +9,7 @@ Manager::Manager() {
     spdlog::error("Failed to parse items.dat");
     return;
   }
-  spdlog::info("Parsed items.dat");
+  spdlog::info("Parsed items.dat | Item count: {}", this->item_db->item_count);
 
   std::ifstream file("config.json");
   nlohmann::json j = nlohmann::json::parse(file);
@@ -30,8 +30,8 @@ Manager::~Manager() {
 }
 
 void Manager::add_bot(const std::string &username, const std::string &password,
-                      const std::string &recovery_code, types::ELoginMethod method,
-                      bool save) {
+                      const std::string &recovery_code,
+                      types::ELoginMethod method, bool save) {
   if (save) {
     std::ifstream file("config.json");
     nlohmann::json j = nlohmann::json::parse(file);
@@ -70,9 +70,9 @@ void Manager::remove_bot(const std::string &username) {
                                    }),
                     j["bots"].end());
 
-   std::ofstream out("config.json");
+    std::ofstream out("config.json");
     out << j.dump(2);
-   out.close();
+    out.close();
 
     auto &[bot, thread] = it->second;
     bot->state.is_running = false;

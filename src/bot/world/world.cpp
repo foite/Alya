@@ -1,4 +1,5 @@
 #include "world.hpp"
+#include "spdlog/spdlog.h"
 #include <cstdint>
 #include <cstring>
 
@@ -26,6 +27,10 @@ void World::parse(uint8_t *data) {
     Tile tile;
     tile.foreground_item_id =
         *reinterpret_cast<const uint16_t *>(&data[position]);
+    if (tile.foreground_item_id > 14540) {
+      spdlog::error("Invalid item id: {} | Position: {} | Index: {}",
+                    tile.foreground_item_id, position, i);
+    }
     position += sizeof(uint16_t);
     tile.background_item_id =
         *reinterpret_cast<const uint16_t *>(&data[position]);
@@ -103,8 +108,7 @@ void World::get_extra_tile_data(Tile &tile, uint8_t *data, size_t &position,
     position += sizeof(uint16_t);
     sign.text.assign(reinterpret_cast<const char *>(&data[position]), str_len);
     position += str_len;
-    sign.unknown_1 = data[position];
-    position += sizeof(uint8_t);
+    position += 4;
     tile.type = TileType::Sign;
     tile.data = sign;
     break;
