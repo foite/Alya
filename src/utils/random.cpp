@@ -1,6 +1,7 @@
 #include "random.hpp"
 #include <iomanip>
 #include <random>
+#include <sstream>
 
 thread_local std::mt19937 generator(std::random_device{}());
 
