@@ -490,11 +490,30 @@ using TileData = std::variant<
     SafeVault, AngelicCountingCloud, InfinityWeatherMachine, PineappleGuzzler,
     KrakenGalaticBlock, FriendsEntrance>;
 
+struct TileFlags {
+  uint16_t serialize : 1;
+  uint16_t locked : 1;
+  uint16_t unknown3 : 1;
+  uint16_t unknown4 : 1;
+  uint16_t enable_growth : 1;
+  uint16_t rotation : 1;
+  uint16_t enabled : 1;
+  uint16_t public_access : 1;
+  uint16_t unknown5 : 1;
+  uint16_t unknown6 : 1;
+  uint16_t water : 1;
+  uint16_t glue : 1;
+  uint16_t fire : 1;
+  uint16_t red : 1;
+  uint16_t green : 1;
+  uint16_t blue : 1;
+};
+
 struct Tile {
   uint16_t foreground_item_id = 0;
   uint16_t background_item_id = 0;
   uint16_t parent_block_index = 0;
-  uint16_t flags = 0;
+  TileFlags flags;
   TileType type = TileType::Basic;
   TileData data;
 };

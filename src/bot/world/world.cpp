@@ -5,6 +5,14 @@
 
 // There should be better way to write this.
 void World::parse(uint8_t *data) {
+  this->name = "EXIT";
+  this->width = 0;
+  this->height = 0;
+  this->tile_count = 0;
+  this->base_weather = 0;
+  this->current_weather = 0;
+  this->tiles.clear();
+
   size_t position = 0;
   position += 6;
 
@@ -38,16 +46,16 @@ void World::parse(uint8_t *data) {
     tile.parent_block_index =
         *reinterpret_cast<const uint16_t *>(&data[position]);
     position += sizeof(uint16_t);
-    tile.flags = *reinterpret_cast<const uint16_t *>(&data[position]);
+    tile.flags = *reinterpret_cast<const TileFlags *>(&data[position]);
     position += sizeof(uint16_t);
 
-    if ((tile.flags & 0x1) != 0) {
+    if (tile.flags.serialize) {
       uint8_t extra_tile_type = data[position];
       position += sizeof(uint8_t);
       this->get_extra_tile_data(tile, data, position, extra_tile_type);
     }
 
-    if ((tile.flags & 0x2) != 0) {
+    if (tile.flags.locked) {
       position += sizeof(uint16_t);
     }
 
