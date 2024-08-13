@@ -29,7 +29,7 @@ struct LoginInfo {
   std::string platform_id = "0,1,1";
   std::string device_version = "0";
   std::string zf = "-821693372";
-  std::string country = "us";
+  std::string country = "jp";
   std::string user;
   std::string wk = utils::random_hex(32, true);
 
