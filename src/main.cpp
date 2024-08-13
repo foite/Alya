@@ -1,3 +1,5 @@
+#include "bot/item/item.hpp"
+#include "bot/world/world.hpp"
 #include "gui/gui.hpp"
 #include "manager/manager.hpp"
 #include <GLFW/glfw3.h>
@@ -6,13 +8,24 @@
 #include <filesystem>
 #include <fstream>
 #include <imgui.h>
+#include <iostream>
 #include <nlohmann/json.hpp>
 #include <spdlog/spdlog.h>
+#include <string>
 
 using namespace types;
 
 static void glfw_error_callback(int error, const char *description) {
   fprintf(stderr, "GLFW Error %d: %s\n", error, description);
+}
+
+ImU32 hex_to_imcolor(uint32_t hex) {
+  unsigned int r = (hex >> 24) & 0xFF;
+  unsigned int g = (hex >> 16) & 0xFF;
+  unsigned int b = (hex >> 8) & 0xFF;
+  unsigned int a = hex & 0xFF;
+
+  return IM_COL32(r, g, b, a);
 }
 
 void init_config() {
@@ -78,6 +91,7 @@ int main() {
   ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
   std::string selected_bot;
+  std::string menu = "bots";
 
   while (!glfwWindowShouldClose(window)) {
     glfwPollEvents();
@@ -108,10 +122,21 @@ int main() {
                      ImGuiWindowFlags_NoScrollWithMouse);
     ImGui::Text("Alya");
     ImGui::SameLine();
-    if (ImGui::Button("Add bot"))
-      ImGui::OpenPopup("Add bot");
+    if (ImGui::Button("Bots")) {
+      menu = "bots";
+    }
     ImGui::SameLine();
-    if (!selected_bot.empty()) {
+    if (ImGui::Button("World")) {
+      menu = "world";
+    }
+    ImGui::SameLine();
+    if (menu == "bots") {
+      if (ImGui::Button("Add bot")) {
+        ImGui::OpenPopup("Add bot");
+      }
+    }
+    ImGui::SameLine();
+    if (!selected_bot.empty() && menu == "bots") {
       if (ImGui::Button("Remove bot")) {
         if (!selected_bot.empty()) {
           manager.remove_bot(selected_bot);
@@ -145,85 +170,152 @@ int main() {
       ImGui::EndPopup();
     }
 
-    ImGui::Separator();
-    ImGui::Columns(2, "bots", false);
-    ImGui::SetColumnWidth(0, 150);
-    ImGui::BeginChild("scrolling", ImVec2(0, 0), true);
-    for (auto &[username, bot_thread_tuple] : manager.bots) {
-      auto &[bot, thread] = bot_thread_tuple;
-      if (ImGui::Selectable(username.c_str())) {
-        selected_bot = username;
-      }
-    }
-    ImGui::EndChild();
-    ImGui::NextColumn();
-    ImGui::BeginChild("info");
-    if (!selected_bot.empty()) {
-      auto bot = manager.get_bot(selected_bot);
-      if (bot != nullptr) {
-        ImGui::Text("Display name: %s", bot->info.display_name.c_str());
-        ImGui::Text("Status: %s", bot->info.status.c_str());
-        ImGui::SameLine();
-        ImGui::Text("| Timeout: %d", bot->info.timeout);
-        ImGui::Text("Token: %s", bot->info.token.c_str());
-        ImGui::Text("World: %s", bot->world.name.c_str());
-        ImGui::Text("Position: %f, %f", bot->position.x / 32,
-                    bot->position.y / 32);
-        ImGui::Text("Ping: %d", bot->info.ping);
-        ImGui::Text("RID: %s", bot->info.login_info.rid.c_str());
-
-        static char world_name[64];
-        ImGui::InputText("World name", world_name, IM_ARRAYSIZE(world_name));
-        if (ImGui::Button("Warp")) {
-          bot->warp(world_name);
+    if (menu == "bots") {
+      ImGui::Separator();
+      ImGui::Columns(2, "bots", false);
+      ImGui::SetColumnWidth(0, 150);
+      ImGui::BeginChild("scrolling", ImVec2(0, 0), true);
+      for (auto &[username, bot_thread_tuple] : manager.bots) {
+        auto &[bot, thread] = bot_thread_tuple;
+        if (ImGui::Selectable(username.c_str())) {
+          selected_bot = username;
         }
       }
-      ImGui::Columns(3, nullptr, false);
-      ImGui::SetColumnWidth(0, 60);
-      ImGui::SetColumnWidth(1, 60);
-      ImGui::SetColumnWidth(2, 60);
-
+      ImGui::EndChild();
       ImGui::NextColumn();
-      if (ImGui::Button("Up", ImVec2(50, 50))) {
+      ImGui::BeginChild("info");
+      if (!selected_bot.empty()) {
         auto bot = manager.get_bot(selected_bot);
         if (bot != nullptr) {
-          bot->walk(0, -1);
-        }
-      }
-      ImGui::NextColumn();
-      ImGui::NextColumn();
+          ImGui::Text("Display name: %s", bot->info.display_name.c_str());
+          ImGui::Text("Status: %s", bot->info.status.c_str());
+          ImGui::SameLine();
+          ImGui::Text("| Timeout: %d", bot->info.timeout);
+          ImGui::Text("Token: %s", bot->info.token.c_str());
+          ImGui::Text("World: %s", bot->world.name.c_str());
+          ImGui::Text("Position: %f, %f", bot->position.x / 32,
+                      bot->position.y / 32);
+          ImGui::Text("Ping: %d", bot->info.ping);
+          ImGui::Text("RID: %s", bot->info.login_info.rid.c_str());
 
-      if (ImGui::Button("Left", ImVec2(50, 50))) {
-        auto bot = manager.get_bot(selected_bot);
-        if (bot != nullptr) {
-          bot->walk(-1, 0);
+          static char world_name[64];
+          ImGui::InputText("World name", world_name, IM_ARRAYSIZE(world_name));
+          if (ImGui::Button("Warp")) {
+            bot->warp(world_name);
+          }
         }
-      }
-      ImGui::NextColumn();
-      ImGui::NextColumn();
-      if (ImGui::Button("Right", ImVec2(50, 50))) {
-        auto bot = manager.get_bot(selected_bot);
-        if (bot != nullptr) {
-          bot->walk(1, 0);
-        }
-      }
-      ImGui::NextColumn();
+        ImGui::Columns(3, nullptr, false);
+        ImGui::SetColumnWidth(0, 60);
+        ImGui::SetColumnWidth(1, 60);
+        ImGui::SetColumnWidth(2, 60);
 
-      ImGui::NextColumn();
-      if (ImGui::Button("Down", ImVec2(50, 50))) {
-        auto bot = manager.get_bot(selected_bot);
-        if (bot != nullptr) {
-          bot->walk(0, 1);
+        ImGui::NextColumn();
+        if (ImGui::Button("Up", ImVec2(50, 50))) {
+          auto bot = manager.get_bot(selected_bot);
+          if (bot != nullptr) {
+            bot->walk(0, -1);
+          }
         }
-      }
-      ImGui::NextColumn();
-      ImGui::NextColumn();
+        ImGui::NextColumn();
+        ImGui::NextColumn();
 
+        if (ImGui::Button("Left", ImVec2(50, 50))) {
+          auto bot = manager.get_bot(selected_bot);
+          if (bot != nullptr) {
+            bot->walk(-1, 0);
+          }
+        }
+        ImGui::NextColumn();
+        ImGui::NextColumn();
+        if (ImGui::Button("Right", ImVec2(50, 50))) {
+          auto bot = manager.get_bot(selected_bot);
+          if (bot != nullptr) {
+            bot->walk(1, 0);
+          }
+        }
+        ImGui::NextColumn();
+
+        ImGui::NextColumn();
+        if (ImGui::Button("Down", ImVec2(50, 50))) {
+          auto bot = manager.get_bot(selected_bot);
+          if (bot != nullptr) {
+            bot->walk(0, 1);
+          }
+        }
+        ImGui::NextColumn();
+        ImGui::NextColumn();
+
+        ImGui::Columns(1);
+      }
+      ImGui::EndChild();
       ImGui::Columns(1);
     }
 
-    ImGui::EndChild();
-    ImGui::Columns(1);
+    if (menu == "world") {
+      ImGui::Separator();
+      ImGui::BeginChild("world");
+      if (!selected_bot.empty()) {
+        auto bot = manager.get_bot(selected_bot);
+        ImDrawList *draw_list = ImGui::GetWindowDrawList();
+        ImVec2 p = ImGui::GetCursorScreenPos();
+        ImVec2 size = ImGui::GetContentRegionAvail();
+        ImVec2 min = ImVec2(p.x, p.y);
+        ImVec2 max = ImVec2(p.x + size.x, p.y + size.y);
+        draw_list->AddRectFilled(min, max, IM_COL32(255, 255, 255, 255));
+
+        float cell_width = size.x / bot->world.width;
+        float cell_height = size.y / bot->world.height;
+
+        for (int y = 0; y < bot->world.height; y++) {
+          for (int x = 0; x < bot->world.height; x++) {
+            Tile tile = bot->world.tiles[y * bot->world.width + x];
+            Item item = bot->item_db->items.at(tile.foreground_item_id);
+            ImVec2 cell_min =
+                ImVec2(min.x + x * cell_width, min.y + y * cell_height);
+            ImVec2 cell_max =
+                ImVec2(cell_min.x + cell_width, cell_min.y + cell_height);
+
+            if (tile.foreground_item_id == 0 && tile.background_item_id == 0) {
+              draw_list->AddRectFilled(cell_min, cell_max,
+                                       IM_COL32(0, 255, 255, 255));
+            }
+            if (item.name.find("Dirt") != std::string::npos) {
+              draw_list->AddRectFilled(cell_min, cell_max,
+                                       IM_COL32(139, 69, 19, 255));
+            }
+            if (item.name.find("Bedrock") != std::string::npos) {
+              draw_list->AddRectFilled(cell_min, cell_max,
+                                       IM_COL32(128, 128, 128, 255));
+            }
+            if (item.name.find("Rock") != std::string::npos) {
+              draw_list->AddRectFilled(cell_min, cell_max,
+                                       IM_COL32(105, 105, 105, 255));
+            }
+            if (item.name.find("Lava") != std::string::npos) {
+              draw_list->AddRectFilled(cell_min, cell_max,
+                                       IM_COL32(255, 0, 0, 255));
+            }
+            if (item.name.find("Door") != std::string::npos) {
+              draw_list->AddRectFilled(cell_min, cell_max,
+                                       IM_COL32(139, 69, 19, 255));
+            }
+            if (bot->position.x / 32 == x && bot->position.y / 32 == y) {
+              draw_list->AddRectFilled(cell_min, cell_max,
+                                       IM_COL32(255, 0, 0, 255));
+            }
+
+            if (ImGui::IsMouseHoveringRect(cell_min, cell_max)) {
+              ImGui::BeginTooltip();
+              ImGui::Text("Position: %s",
+                          std::to_string(y * bot->world.width + x).c_str());
+              ImGui::EndTooltip();
+            }
+          }
+        }
+      }
+      ImGui::EndChild();
+    }
+
     ImGui::End();
 
     // Rendering
