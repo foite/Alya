@@ -493,14 +493,14 @@ using TileData = std::variant<
 struct TileFlags {
   uint16_t serialize : 1;
   uint16_t locked : 1;
-  uint16_t unknown3 : 1;
-  uint16_t unknown4 : 1;
-  uint16_t enable_growth : 1;
+  uint16_t spliced_tree : 1;
+  uint16_t tree_will_drop_seed : 1;
+  uint16_t is_tree : 1;
   uint16_t rotation : 1;
   uint16_t enabled : 1;
   uint16_t public_access : 1;
-  uint16_t unknown5 : 1;
-  uint16_t unknown6 : 1;
+  uint16_t extra_frame : 1;
+  uint16_t silenced : 1;
   uint16_t water : 1;
   uint16_t glue : 1;
   uint16_t fire : 1;
